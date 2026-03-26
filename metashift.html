@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MetaShift — When Did the Evidence Change?</title>
+<style>
+/* ===== CSS CUSTOM PROPERTIES ===== */
+:root {
+  --bg: #f5f7fa;
+  --surface: #ffffff;
+  --surface2: #f0f2f6;
+  --border: #dde1e9;
+  --text: #1a1d24;
+  --text2: #5a6070;
+  --accent: #2563eb;
+  --accent2: #1d4ed8;
+  --green: #16a34a;
+  --amber: #d97706;
+  --red: #dc2626;
+  --blue: #2563eb;
+  --shadow: 0 1px 4px rgba(0,0,0,0.08);
+  --shadow2: 0 4px 16px rgba(0,0,0,0.12);
+  --radius: 8px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+[data-theme="dark"] {
+  --bg: #0f1117;
+  --surface: #1a1d24;
+  --surface2: #22252f;
+  --border: #2e3240;
+  --text: #e8eaf0;
+  --text2: #8b91a5;
+  --accent: #3b82f6;
+  --accent2: #60a5fa;
+  --green: #22c55e;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --shadow: 0 1px 4px rgba(0,0,0,0.3);
+  --shadow2: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+/* ===== BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5; }
+a { color: var(--accent); text-decoration: none; }
+button { cursor: pointer; font-family: var(--font); }
+
+/* ===== LAYOUT ===== */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+/* ===== HEADER ===== */
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+.site-header h1 { font-size: 1.25rem; font-weight: 700; color: var(--text); }
+.site-header .subtitle { font-size: 0.8rem; color: var(--text2); margin-top: 2px; }
+.header-controls { display: flex; align-items: center; gap: 12px; }
+
+/* ===== DARK MODE TOGGLE ===== */
+.dm-toggle {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 0.82rem;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.dm-toggle:hover { background: var(--border); }
+
+/* ===== MODE TOGGLE ===== */
+.mode-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+}
+.mode-bar .container { display: flex; align-items: center; gap: 8px; }
+.mode-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 18px;
+  font-size: 0.88rem;
+  color: var(--text2);
+  transition: all 0.2s;
+}
+.mode-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.mode-btn:hover:not(.active) { background: var(--surface2); }
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.section-desc {
+  font-size: 0.83rem;
+  color: var(--text2);
+  margin-bottom: 16px;
+}
+
+/* ===== STAT GRID ===== */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 16px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.stat-box .stat-val {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1.1;
+}
+.stat-box .stat-label {
+  font-size: 0.8rem;
+  color: var(--text2);
+  margin-top: 4px;
+  line-height: 1.3;
+}
+
+/* ===== STABILITY BADGES ===== */
+.cls-badge {
+  display: inline-block;
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 0.77rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.cls-early  { background: #dcfce7; color: #166534; }
+.cls-mid    { background: #dbeafe; color: #1e40af; }
+.cls-late   { background: #fef3c7; color: #92400e; }
+.cls-never  { background: #fee2e2; color: #991b1b; }
+[data-theme="dark"] .cls-early  { background: #14532d; color: #86efac; }
+[data-theme="dark"] .cls-mid    { background: #1e3a5f; color: #93c5fd; }
+[data-theme="dark"] .cls-late   { background: #451a03; color: #fcd34d; }
+[data-theme="dark"] .cls-never  { background: #450a0a; color: #fca5a5; }
+
+/* ===== TABLE ===== */
+.table-wrap { overflow-x: auto; }
+.sortable-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.87rem;
+}
+.sortable-table th {
+  background: var(--surface2);
+  border-bottom: 2px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.sortable-table th:hover { color: var(--accent); }
+.sortable-table th .sort-icon { font-size: 0.7rem; margin-left: 4px; }
+.sortable-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 12px;
+  vertical-align: top;
+  color: var(--text);
+}
+.sortable-table tr:hover td { background: var(--surface2); }
+.sortable-table tr.expanded td { background: var(--surface2); }
+.row-clickable { cursor: pointer; }
+
+/* ===== DETAIL PANEL ===== */
+.detail-panel {
+  background: var(--surface2);
+  border-bottom: 2px solid var(--accent);
+  padding: 20px;
+}
+.detail-panel .cp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.cp-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  text-align: center;
+}
+.cp-box .cp-val { font-size: 1.4rem; font-weight: 700; }
+.cp-box .cp-label { font-size: 0.78rem; color: var(--text2); margin-top: 4px; }
+.cp-val.has-cp { color: var(--red); }
+.cp-val.no-cp { color: var(--text2); }
+
+/* ===== SVG CHART ===== */
+.chart-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  overflow-x: auto;
+}
+.chart-container svg text { font-family: var(--font); }
+
+/* ===== AGGREGATE TABLE ===== */
+.agg-section { margin-top: 20px; }
+.agg-toggle {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 0.88rem;
+  color: var(--text);
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.agg-toggle:hover { background: var(--border); }
+.agg-content { display: none; margin-top: 10px; }
+.agg-content.open { display: block; }
+
+/* ===== CUSTOM MODE ===== */
+.custom-form { margin-bottom: 20px; }
+.input-table-wrap { overflow-x: auto; margin-bottom: 12px; }
+.input-table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+.input-table th {
+  background: var(--surface2);
+  border-bottom: 2px solid var(--border);
+  padding: 6px 10px;
+  font-weight: 600;
+  color: var(--text2);
+  text-align: left;
+}
+.input-table td { border-bottom: 1px solid var(--border); padding: 4px 6px; }
+.input-table input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 8px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.87rem;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+.input-table input:focus { outline: none; border-color: var(--accent); }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.btn {
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-secondary { background: var(--surface2); border: 1px solid var(--border); color: var(--text); }
+.btn-secondary:hover { background: var(--border); }
+.btn-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.btn-danger:hover { background: #fecaca; }
+[data-theme="dark"] .btn-danger { background: #450a0a; color: #fca5a5; border-color: #7f1d1d; }
+[data-theme="dark"] .btn-danger:hover { background: #7f1d1d; }
+
+/* ===== RESULTS AREA ===== */
+.results-area { margin-top: 20px; }
+.results-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+
+/* ===== FOOTER ===== */
+.site-footer {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 20px;
+  margin-top: 40px;
+}
+.footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.footer-text { font-size: 0.83rem; color: var(--text2); }
+.footer-exports { display: flex; gap: 8px; }
+.btn-export {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 0.83rem;
+  color: var(--text2);
+  transition: all 0.2s;
+}
+.btn-export:hover { background: var(--border); color: var(--text); }
+
+/* ===== SECTIONS ===== */
+.page-content { padding: 24px 20px; }
+.section { margin-bottom: 28px; }
+
+/* ===== STABILITY CHART ===== */
+.stab-chart-wrap { display: flex; gap: 20px; flex-wrap: wrap; }
+
+/* ===== K DISTRIBUTION ===== */
+.k-hist-label { font-size: 0.78rem; color: var(--text2); margin-top: 8px; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .site-header h1 { font-size: 1rem; }
+  .detail-panel .cp-grid { grid-template-columns: 1fr 1fr; }
+  .stab-chart-wrap { flex-direction: column; }
+}
+
+/* ===== PRINT ===== */
+@media print {
+  .site-header, .mode-bar, .site-footer, .btn-row, .agg-toggle { display: none !important; }
+  body { background: #fff; color: #000; }
+  .card { box-shadow: none; border: 1px solid #ccc; }
+  .detail-panel { break-inside: avoid; }
+}
+
+/* ===== MISC ===== */
+.note { font-size: 0.8rem; color: var(--text2); font-style: italic; margin-top: 8px; }
+.cp-na { color: var(--text2); font-size: 0.85rem; }
+.sig-yes { color: var(--green); font-weight: 600; }
+.sig-no { color: var(--text2); }
+.section-header { margin-bottom: 16px; }
+.empty-msg { color: var(--text2); font-size: 0.88rem; padding: 16px; text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div>
+    <h1>MetaShift &mdash; When Did the Evidence Change?</h1>
+    <div class="subtitle">Changepoint detection in cumulative meta-analysis &bull; 403 Cochrane reviews</div>
+  </div>
+  <div class="header-controls">
+    <button class="dm-toggle" onclick="toggleDark()" id="dmBtn">&#9790; Dark</button>
+  </div>
+</header>
+
+<!-- MODE BAR -->
+<div class="mode-bar">
+  <div class="container">
+    <button class="mode-btn active" id="btnCorpus" onclick="setMode('corpus')">&#128202; Corpus</button>
+    <button class="mode-btn" id="btnCustom" onclick="setMode('custom')">&#9998; Custom</button>
+  </div>
+</div>
+
+<!-- PAGE CONTENT -->
+<div class="page-content">
+<div class="container">
+
+  <!-- CORPUS MODE -->
+  <div id="corpusMode">
+
+    <!-- Section 1: Summary Stats -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Corpus Summary</div>
+        <div class="section-desc">10 reviews with full cumulative trajectories &bull; 393 reviews with aggregate statistics only</div>
+      </div>
+      <div class="stat-grid" id="statGrid">
+        <div class="stat-box"><div class="stat-val" id="statN">-</div><div class="stat-label">Reviews with Trajectories</div></div>
+        <div class="stat-box"><div class="stat-val" id="statEffect">-</div><div class="stat-label">% with Effect Changepoint</div></div>
+        <div class="stat-box"><div class="stat-val" id="statSig">-</div><div class="stat-label">% with Significance Flip</div></div>
+        <div class="stat-box"><div class="stat-val" id="statHet">-</div><div class="stat-label">% with Heterogeneity Spike</div></div>
+      </div>
+    </div>
+
+    <!-- Section 2: Stability Distribution -->
+    <div class="section">
+      <div class="card">
+        <div class="section-title">Stability Distribution</div>
+        <div class="section-desc">When did pooled estimates stabilize? (trajectory reviews only)</div>
+        <div class="stab-chart-wrap">
+          <div id="stabChart"></div>
+          <div id="kHistChart"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Review Table -->
+    <div class="section">
+      <div class="card">
+        <div class="section-title">Trajectory Reviews</div>
+        <div class="section-desc">Click any row to expand the triple-panel changepoint chart</div>
+        <div class="table-wrap" id="trajTableWrap"></div>
+        <div class="agg-section">
+          <button class="agg-toggle" onclick="toggleAgg()" id="aggBtn">
+            &#9660; Show 393 aggregate-only reviews (no trajectory available)
+          </button>
+          <div class="agg-content" id="aggContent">
+            <div class="table-wrap" id="aggTableWrap"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /corpusMode -->
+
+  <!-- CUSTOM MODE -->
+  <div id="customMode" style="display:none;">
+    <div class="section">
+      <div class="card custom-form">
+        <div class="section-title">Custom Cumulative Meta-Analysis</div>
+        <div class="section-desc">Enter study-level data (effect size and standard error). Sort by year for a chronological trajectory.</div>
+        <div class="input-table-wrap">
+          <table class="input-table" id="inputTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Study Name</th>
+                <th>Year</th>
+                <th>Effect (yi)</th>
+                <th>Std Error (sei)</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="inputBody"></tbody>
+          </table>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" onclick="addRow()">+ Add Row</button>
+          <button class="btn btn-primary" onclick="loadExample()">Load Example</button>
+          <button class="btn btn-primary" style="background:var(--green);" onclick="runAnalysis()">&#9654; Run Analysis</button>
+          <button class="btn btn-danger" onclick="clearRows()">Clear</button>
+        </div>
+      </div>
+      <div class="results-area" id="customResults"></div>
+    </div>
+  </div><!-- /customMode -->
+
+</div><!-- /container -->
+</div><!-- /page-content -->
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-text">
+      MetaShift v1.0 &mdash; Browser-based, no data leaves your device.<br>
+      CUSUM (effect stability) &bull; Binary segmentation (significance flip) &bull; PELT-lite (heterogeneity spike)
+    </div>
+    <div class="footer-exports">
+      <button class="btn-export" onclick="exportCSV()">&#8659; CSV</button>
+      <button class="btn-export" onclick="exportSVG()">&#8659; SVG</button>
+      <button class="btn-export" onclick="exportPNG()">&#8659; PNG</button>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* =====================================================================
+   EMBEDDED DATA
+   ===================================================================== */
+var DATA = null; // populated below via JSON parse
+
+/* =====================================================================
+   UTILITIES
+   ===================================================================== */
+function escapeHtml(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function csvSafe(v) {
+  if (v === null || v === undefined) return '';
+  var s = String(v);
+  if (/^[=+@\t\r]/.test(s)) s = "'" + s;
+  if (s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0) {
+    s = '"' + s.replace(/"/g, '""') + '"';
+  }
+  return s;
+}
+
+function fmt(v, d) {
+  if (v === null || v === undefined) return 'N/A';
+  return Number(v).toFixed(d !== undefined ? d : 3);
+}
+
+function fmtPct(v) {
+  if (v === null || v === undefined) return 'N/A';
+  return Math.round(Number(v)) + '%';
+}
+
+function stabClass(sc) {
+  if (!sc) return 'cls-never';
+  var s = sc.toLowerCase();
+  if (s.indexOf('early') >= 0) return 'cls-early';
+  if (s.indexOf('mid') >= 0) return 'cls-mid';
+  if (s.indexOf('late') >= 0) return 'cls-late';
+  return 'cls-never';
+}
+
+/* =====================================================================
+   THEME
+   ===================================================================== */
+function toggleDark() {
+  var cur = document.documentElement.getAttribute('data-theme');
+  var nxt = (cur === 'dark') ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', nxt);
+  localStorage.setItem('ms_theme', nxt);
+  document.getElementById('dmBtn').textContent = (nxt === 'dark') ? '\u2600 Light' : '\u263e Dark';
+}
+
+(function initTheme() {
+  var t = localStorage.getItem('ms_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', t);
+  document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('dmBtn');
+    if (btn) btn.textContent = (t === 'dark') ? '\u2600 Light' : '\u263e Dark';
+  });
+})();
+
+/* =====================================================================
+   MODE
+   ===================================================================== */
+function setMode(m) {
+  document.getElementById('corpusMode').style.display = (m === 'corpus') ? '' : 'none';
+  document.getElementById('customMode').style.display = (m === 'custom') ? '' : 'none';
+  document.getElementById('btnCorpus').className = 'mode-btn' + (m === 'corpus' ? ' active' : '');
+  document.getElementById('btnCustom').className = 'mode-btn' + (m === 'custom' ? ' active' : '');
+  localStorage.setItem('ms_mode', m);
+}
+
+/* =====================================================================
+   STATISTICS ENGINE (for Custom mode)
+   ===================================================================== */
+
+function normalCDF(x) {
+  // Abramowitz & Stegun 26.2.17
+  if (x < -8) return 0;
+  if (x > 8) return 1;
+  var t = 1.0 / (1.0 + 0.2316419 * Math.abs(x));
+  var d = 0.3989422802 * Math.exp(-x * x / 2);
+  var p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+  return (x > 0) ? (1 - p) : p;
+}
+
+function dlMeta(yi, sei) {
+  var k = yi.length;
+  if (k === 0) return null;
+  if (k === 1) {
+    var z0 = sei[0] > 0 ? Math.abs(yi[0] / sei[0]) : 0;
+    return {
+      est: yi[0], se: sei[0],
+      ci_lo: yi[0] - 1.96 * sei[0], ci_hi: yi[0] + 1.96 * sei[0],
+      pval: 2 * (1 - normalCDF(z0)),
+      tau2: 0, I2: 0
+    };
+  }
+  var vi = sei.map(function(s) { return s * s; });
+  var wi = vi.map(function(v) { return 1.0 / v; });
+  var sw = wi.reduce(function(a, b) { return a + b; }, 0);
+  var mu_fe = wi.reduce(function(a, w, i) { return a + w * yi[i]; }, 0) / sw;
+  var Q = wi.reduce(function(a, w, i) { return a + w * Math.pow(yi[i] - mu_fe, 2); }, 0);
+  var sw2 = wi.reduce(function(a, w) { return a + w * w; }, 0);
+  var C = sw - sw2 / sw;
+  var tau2 = C > 0 ? Math.max(0, (Q - (k - 1)) / C) : 0;
+  var wi_re = vi.map(function(v) { return 1.0 / (v + tau2); });
+  var swr = wi_re.reduce(function(a, b) { return a + b; }, 0);
+  var mu_re = wi_re.reduce(function(a, w, i) { return a + w * yi[i]; }, 0) / swr;
+  var se_re = Math.sqrt(1.0 / swr);
+  var ci_lo = mu_re - 1.96 * se_re;
+  var ci_hi = mu_re + 1.96 * se_re;
+  var z = se_re > 0 ? Math.abs(mu_re / se_re) : 0;
+  var pval = 2 * (1 - normalCDF(z));
+  var I2 = Q > 0 ? Math.max(0, (Q - (k - 1)) / Q) * 100 : 0;
+  return { est: mu_re, se: se_re, ci_lo: ci_lo, ci_hi: ci_hi, pval: pval, tau2: tau2, I2: I2 };
+}
+
+function cumulativeMeta(yi, sei) {
+  var traj = [];
+  for (var t = 1; t <= yi.length; t++) {
+    var r = dlMeta(yi.slice(0, t), sei.slice(0, t));
+    r.step = t;
+    r.sig = r.pval < 0.05;
+    traj.push(r);
+  }
+  return traj;
+}
+
+function cusumChangepoint(values) {
+  var n = values.length;
+  if (n < 3) return null;
+  var target = values[n - 1];
+  var deviations = values.map(function(v) { return Math.abs(v - target); });
+  var mean_d = deviations.reduce(function(a, b) { return a + b; }, 0) / n;
+  var var_d = deviations.reduce(function(a, d) { return a + Math.pow(d - mean_d, 2); }, 0) / n;
+  var sd = Math.sqrt(var_d) || 1e-10;
+  var k_slack = 0.5 * sd;
+  var h = 4 * sd;
+  var S = 0;
+  var last_exceed = null;
+  for (var i = 0; i < n; i++) {
+    S = Math.max(0, S + deviations[i] - k_slack);
+    if (S > h) last_exceed = i;
+  }
+  return last_exceed;
+}
+
+function binarySegmentationCP(sigSeq) {
+  var n = sigSeq.length;
+  if (n < 4) return null;
+  var total_p = sigSeq.reduce(function(a, b) { return a + b; }, 0) / n;
+  if (total_p === 0 || total_p === 1) return null;
+  var best_llr = 0;
+  var best_c = null;
+  for (var c = 2; c < n - 1; c++) {
+    var n1 = c, n2 = n - c;
+    var p1 = sigSeq.slice(0, c).reduce(function(a, b) { return a + b; }, 0) / n1;
+    var p2 = sigSeq.slice(c).reduce(function(a, b) { return a + b; }, 0) / n2;
+    if (p1 <= 0 || p1 >= 1 || p2 <= 0 || p2 >= 1) continue;
+    var llr = n1 * (p1 * Math.log(p1 / total_p) + (1 - p1) * Math.log((1 - p1) / (1 - total_p))) +
+              n2 * (p2 * Math.log(p2 / total_p) + (1 - p2) * Math.log((1 - p2) / (1 - total_p)));
+    if (Math.abs(llr) > best_llr) { best_llr = Math.abs(llr); best_c = c; }
+  }
+  return best_llr > 3.84 ? best_c : null;
+}
+
+function peltChangepoint(values) {
+  var n = values.length;
+  if (n < 4) return null;
+  var mean = values.reduce(function(a, b) { return a + b; }, 0) / n;
+  var total_var = values.reduce(function(a, v) { return a + Math.pow(v - mean, 2); }, 0) / n;
+  if (total_var < 1e-10) return null;
+  var total_cost = n * Math.log(Math.max(total_var, 1e-10));
+  var penalty = 3 * Math.log(n);
+  var best_imp = 0, best_c = null;
+  for (var c = 2; c < n - 1; c++) {
+    var s1 = values.slice(0, c), s2 = values.slice(c);
+    var m1 = s1.reduce(function(a, b) { return a + b; }, 0) / s1.length;
+    var m2 = s2.reduce(function(a, b) { return a + b; }, 0) / s2.length;
+    var v1 = s1.reduce(function(a, v) { return a + Math.pow(v - m1, 2); }, 0) / s1.length;
+    var v2 = s2.reduce(function(a, v) { return a + Math.pow(v - m2, 2); }, 0) / s2.length;
+    var cost_split = s1.length * Math.log(Math.max(v1, 1e-10)) + s2.length * Math.log(Math.max(v2, 1e-10));
+    var imp = total_cost - cost_split;
+    if (imp > best_imp) { best_imp = imp; best_c = c; }
+  }
+  return best_imp > penalty ? best_c : null;
+}
+
+function classifyStability(cpPos, k) {
+  if (cpPos === null || cpPos === undefined || cpPos > 0.9 * k) return 'Never Stabilized';
+  var r = cpPos / k;
+  if (r < 0.3) return 'Stable Early';
+  if (r < 0.6) return 'Stable Mid';
+  return 'Stable Late';
+}
+
+/* =====================================================================
+   RENDER: SUMMARY CARDS
+   ===================================================================== */
+function renderSummary() {
+  var traj = DATA.reviews_with_trajectory;
+  var n = traj.length;
+  var n_eff = traj.filter(function(r) { return r.changepoints.effect !== null; }).length;
+  var n_sig = traj.filter(function(r) { return r.changepoints.significance !== null; }).length;
+  var n_het = traj.filter(function(r) { return r.changepoints.heterogeneity !== null; }).length;
+  document.getElementById('statN').textContent = n;
+  document.getElementById('statEffect').textContent = Math.round(100 * n_eff / n) + '%';
+  document.getElementById('statSig').textContent = Math.round(100 * n_sig / n) + '%';
+  document.getElementById('statHet').textContent = Math.round(100 * n_het / n) + '%';
+}
+
+/* =====================================================================
+   RENDER: STABILITY CHART
+   ===================================================================== */
+function renderStabilityChart() {
+  var traj = DATA.reviews_with_trajectory;
+  var counts = { 'Stable Early': 0, 'Stable Mid': 0, 'Stable Late': 0, 'Never Stabilized': 0 };
+  traj.forEach(function(r) { counts[r.stability_class] = (counts[r.stability_class] || 0) + 1; });
+
+  var labels = ['Stable Early', 'Stable Mid', 'Stable Late', 'Never Stabilized'];
+  var colors = { 'Stable Early': '#16a34a', 'Stable Mid': '#2563eb', 'Stable Late': '#d97706', 'Never Stabilized': '#dc2626' };
+  var max_c = Math.max.apply(null, labels.map(function(l) { return counts[l] || 0; }));
+  var W = 340, barH = 30, gap = 10, labelW = 130, numW = 30, padT = 10, padB = 10;
+  var totalH = padT + labels.length * (barH + gap) - gap + padB;
+
+  var svgParts = ['<svg width="' + W + '" height="' + totalH + '" viewBox="0 0 ' + W + ' ' + totalH + '" aria-label="Stability distribution">'];
+  labels.forEach(function(label, i) {
+    var y = padT + i * (barH + gap);
+    var c = counts[label] || 0;
+    var barW = max_c > 0 ? Math.round((W - labelW - numW - 10) * c / max_c) : 0;
+    var col = colors[label];
+    svgParts.push('<text x="' + (labelW - 6) + '" y="' + (y + barH / 2 + 5) + '" text-anchor="end" font-size="12" fill="var(--text2)">' + escapeHtml(label) + '<\/text>');
+    svgParts.push('<rect x="' + labelW + '" y="' + y + '" width="' + (W - labelW - numW - 10) + '" height="' + barH + '" rx="3" fill="var(--surface2)" stroke="var(--border)" stroke-width="1"\/>');
+    if (barW > 0) {
+      svgParts.push('<rect x="' + labelW + '" y="' + y + '" width="' + barW + '" height="' + barH + '" rx="3" fill="' + col + '" opacity="0.85"\/>');
+    }
+    svgParts.push('<text x="' + (labelW + (W - labelW - numW - 10) + 6) + '" y="' + (y + barH / 2 + 5) + '" font-size="13" font-weight="700" fill="' + col + '">' + c + '<\/text>');
+  });
+  svgParts.push('<\/svg>');
+
+  document.getElementById('stabChart').innerHTML = svgParts.join('');
+
+  // k histogram
+  var allReviews = DATA.reviews_with_trajectory.concat(DATA.reviews_aggregate_only);
+  var ks = allReviews.map(function(r) { return r.k || 0; });
+  var bins = [0,0,0,0,0,0]; // 1-5, 6-10, 11-20, 21-40, 41-100, 100+
+  var binLabels = ['1-5','6-10','11-20','21-40','41-100','100+'];
+  var binColors = ['#818cf8','#6366f1','#4f46e5','#4338ca','#3730a3','#312e81'];
+  ks.forEach(function(k) {
+    if (k <= 5) bins[0]++;
+    else if (k <= 10) bins[1]++;
+    else if (k <= 20) bins[2]++;
+    else if (k <= 40) bins[3]++;
+    else if (k <= 100) bins[4]++;
+    else bins[5]++;
+  });
+  var maxB = Math.max.apply(null, bins);
+  var HW = 300, HH = 180, barW2 = 36, barGap = 8, padL = 40, padBot = 30, padTop2 = 10;
+  var totalW2 = padL + bins.length * (barW2 + barGap) - barGap + 20;
+  var svgH = ['<svg width="' + totalW2 + '" height="' + HH + '" viewBox="0 0 ' + totalW2 + ' ' + HH + '" aria-label="Studies per review histogram">'];
+  svgH.push('<text x="' + (totalW2 / 2) + '" y="' + (HH - 2) + '" text-anchor="middle" font-size="11" fill="var(--text2)">Studies per review (k), n=403<\/text>');
+  bins.forEach(function(cnt, i) {
+    var x = padL + i * (barW2 + barGap);
+    var availH = HH - padBot - padTop2;
+    var bh = maxB > 0 ? Math.round(availH * cnt / maxB) : 0;
+    var y = HH - padBot - bh;
+    svgH.push('<rect x="' + x + '" y="' + y + '" width="' + barW2 + '" height="' + bh + '" rx="3" fill="' + binColors[i] + '" opacity="0.85"\/>');
+    svgH.push('<text x="' + (x + barW2 / 2) + '" y="' + (HH - padBot + 14) + '" text-anchor="middle" font-size="10" fill="var(--text2)">' + binLabels[i] + '<\/text>');
+    if (cnt > 0) svgH.push('<text x="' + (x + barW2 / 2) + '" y="' + (y - 3) + '" text-anchor="middle" font-size="10" fill="var(--text2)">' + cnt + '<\/text>');
+  });
+  svgH.push('<\/svg>');
+  var kDiv = document.getElementById('kHistChart');
+  kDiv.innerHTML = '<div style="font-size:0.82rem;color:var(--text2);margin-bottom:6px;font-weight:600;">k-Distribution (all 403 reviews)</div>' + svgH.join('');
+}
+
+/* =====================================================================
+   RENDER: TRAJECTORY CHART (triple-panel SVG)
+   ===================================================================== */
+function renderTrajectoryChart(review) {
+  var cumul = review.cumulative;
+  var k = cumul.length;
+  var cp = review.changepoints;
+
+  // Dimensions
+  var SVG_W = 680;
+  var PAD_L = 52, PAD_R = 20, PAD_TOP = 16, PAD_BOT_AXIS = 28;
+  var TOP_H = 230, MID_H = 55, BOT_H = 180;
+  var GAP = 8;
+  var chartW = SVG_W - PAD_L - PAD_R;
+  var TOTAL_H = PAD_TOP + TOP_H + GAP + MID_H + GAP + BOT_H + PAD_BOT_AXIS;
+
+  var xScale = function(step) {
+    return PAD_L + (step - 1) / Math.max(k - 1, 1) * chartW;
+  };
+
+  var ests = cumul.map(function(c) { return c.est; });
+  var cis_lo = cumul.map(function(c) { return c.ci_lo; });
+  var cis_hi = cumul.map(function(c) { return c.ci_hi; });
+  var i2s = cumul.map(function(c) { return c.I2; });
+
+  var yMinEffect = Math.min.apply(null, cis_lo.concat([0]));
+  var yMaxEffect = Math.max.apply(null, cis_hi.concat([0]));
+  var eRange = yMaxEffect - yMinEffect || 1;
+  yMinEffect -= eRange * 0.1;
+  yMaxEffect += eRange * 0.1;
+  eRange = yMaxEffect - yMinEffect;
+
+  var yTopOff = PAD_TOP;
+  var yMidOff = PAD_TOP + TOP_H + GAP;
+  var yBotOff = PAD_TOP + TOP_H + GAP + MID_H + GAP;
+
+  // Y-scale helpers
+  var yEffect = function(v) {
+    return yTopOff + TOP_H - (v - yMinEffect) / eRange * TOP_H;
+  };
+  var yI2 = function(v) {
+    return yBotOff + BOT_H - v / 100 * BOT_H;
+  };
+
+  var cp_eff = cp.effect ? cp.effect.position : null;
+  var cp_sig = cp.significance ? cp.significance.position : null;
+  var cp_het = cp.heterogeneity ? cp.heterogeneity.position : null;
+
+  var parts = [];
+  parts.push('<svg width="' + SVG_W + '" height="' + TOTAL_H + '" viewBox="0 0 ' + SVG_W + ' ' + TOTAL_H + '" font-family="inherit">');
+
+  // -- BACKGROUNDS --
+  parts.push('<rect x="0" y="0" width="' + SVG_W + '" height="' + TOTAL_H + '" fill="var(--surface)"\/>');
+  parts.push('<rect x="' + PAD_L + '" y="' + yTopOff + '" width="' + chartW + '" height="' + TOP_H + '" fill="var(--surface2)" rx="3"\/>');
+  parts.push('<rect x="' + PAD_L + '" y="' + yMidOff + '" width="' + chartW + '" height="' + MID_H + '" fill="var(--surface2)" rx="3"\/>');
+  parts.push('<rect x="' + PAD_L + '" y="' + yBotOff + '" width="' + chartW + '" height="' + BOT_H + '" fill="var(--surface2)" rx="3"\/>');
+
+  // -- PANEL LABELS --
+  parts.push('<text x="' + (PAD_L + 6) + '" y="' + (yTopOff + 16) + '" font-size="11" font-weight="700" fill="var(--text2)">Effect Trajectory (DL pooled estimate)<\/text>');
+  parts.push('<text x="' + (PAD_L + 6) + '" y="' + (yMidOff + 16) + '" font-size="11" font-weight="700" fill="var(--text2)">Significance (p &lt; 0.05)<\/text>');
+  parts.push('<text x="' + (PAD_L + 6) + '" y="' + (yBotOff + 16) + '" font-size="11" font-weight="700" fill="var(--text2)">Heterogeneity (I&sup2;)<\/text>');
+
+  // -- GRID LINES (effect panel) --
+  var nYLines = 4;
+  for (var gi = 0; gi <= nYLines; gi++) {
+    var gv = yMinEffect + (eRange * gi / nYLines);
+    var gy = yEffect(gv);
+    parts.push('<line x1="' + PAD_L + '" y1="' + gy + '" x2="' + (PAD_L + chartW) + '" y2="' + gy + '" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="3,3"\/>');
+    parts.push('<text x="' + (PAD_L - 4) + '" y="' + (gy + 4) + '" text-anchor="end" font-size="9" fill="var(--text2)">' + gv.toFixed(2) + '<\/text>');
+  }
+
+  // Zero reference line
+  if (yMinEffect < 0 && yMaxEffect > 0) {
+    var yz = yEffect(0);
+    parts.push('<line x1="' + PAD_L + '" y1="' + yz + '" x2="' + (PAD_L + chartW) + '" y2="' + yz + '" stroke="var(--text2)" stroke-width="1" opacity="0.6"\/>');
+    parts.push('<text x="' + (PAD_L - 4) + '" y="' + (yz + 4) + '" text-anchor="end" font-size="9" fill="var(--text2)">0<\/text>');
+  }
+
+  // -- I2 GRID LINES --
+  var i2Ticks = [0, 25, 50, 75, 100];
+  i2Ticks.forEach(function(tick) {
+    var gy = yI2(tick);
+    parts.push('<line x1="' + PAD_L + '" y1="' + gy + '" x2="' + (PAD_L + chartW) + '" y2="' + gy + '" stroke="var(--border)" stroke-width="0.5" stroke-dasharray="3,3"\/>');
+    parts.push('<text x="' + (PAD_L - 4) + '" y="' + (gy + 4) + '" text-anchor="end" font-size="9" fill="var(--text2)">' + tick + '%<\/text>');
+  });
+
+  // -- CI BAND (effect panel) --
+  var bandPts = [];
+  // Forward: ci_lo
+  for (var t = 0; t < k; t++) {
+    bandPts.push(xScale(t + 1) + ',' + yEffect(cis_lo[t]));
+  }
+  // Backward: ci_hi
+  for (var t = k - 1; t >= 0; t--) {
+    bandPts.push(xScale(t + 1) + ',' + yEffect(cis_hi[t]));
+  }
+  parts.push('<polygon points="' + bandPts.join(' ') + '" fill="var(--blue)" opacity="0.12"\/>');
+
+  // -- EFFECT LINE (colored by CP) --
+  if (k > 1) {
+    // Build path segments: blue before CP, green after
+    var cp_x = cp_eff !== null ? cp_eff : k; // 0-based index
+    // before-CP segment (steps 0..cp_x)
+    var seg1 = [];
+    for (var t = 0; t <= Math.min(cp_x, k - 1); t++) {
+      seg1.push(xScale(t + 1) + ',' + yEffect(ests[t]));
+    }
+    if (seg1.length > 1) {
+      parts.push('<polyline points="' + seg1.join(' ') + '" fill="none" stroke="var(--blue)" stroke-width="2.5"\/>');
+    }
+    // after-CP segment
+    if (cp_eff !== null && cp_x < k - 1) {
+      var seg2 = [];
+      for (var t = cp_x; t < k; t++) {
+        seg2.push(xScale(t + 1) + ',' + yEffect(ests[t]));
+      }
+      parts.push('<polyline points="' + seg2.join(' ') + '" fill="none" stroke="var(--green)" stroke-width="2.5"\/>');
+    }
+    // dots
+    for (var t = 0; t < k; t++) {
+      var col_d = (cp_eff !== null && t > cp_eff) ? 'var(--green)' : 'var(--blue)';
+      parts.push('<circle cx="' + xScale(t + 1) + '" cy="' + yEffect(ests[t]) + '" r="3" fill="' + col_d + '" stroke="var(--surface)" stroke-width="1.5"\/>');
+    }
+  } else if (k === 1) {
+    parts.push('<circle cx="' + xScale(1) + '" cy="' + yEffect(ests[0]) + '" r="4" fill="var(--blue)" stroke="var(--surface)" stroke-width="1.5"\/>');
+  }
+
+  // -- SIGNIFICANCE TIMELINE (middle panel) --
+  var sigBlockW = Math.max(2, chartW / k - 1);
+  for (var t = 0; t < k; t++) {
+    var bx = xScale(t + 1) - sigBlockW / 2;
+    var sig = cumul[t].sig;
+    var bcol = sig ? 'var(--green)' : 'var(--border)';
+    parts.push('<rect x="' + bx + '" y="' + (yMidOff + 20) + '" width="' + sigBlockW + '" height="' + (MID_H - 26) + '" rx="2" fill="' + bcol + '" opacity="0.85"\/>');
+  }
+
+  // -- I2 LINE --
+  if (k > 1) {
+    var i2pts = [];
+    for (var t = 0; t < k; t++) {
+      i2pts.push(xScale(t + 1) + ',' + yI2(i2s[t]));
+    }
+    parts.push('<polyline points="' + i2pts.join(' ') + '" fill="none" stroke="#7c3aed" stroke-width="2"\/>');
+    for (var t = 0; t < k; t++) {
+      parts.push('<circle cx="' + xScale(t + 1) + '" cy="' + yI2(i2s[t]) + '" r="3" fill="#7c3aed" stroke="var(--surface)" stroke-width="1.5"\/>');
+    }
+  }
+
+  // -- CHANGEPOINT VERTICAL LINES --
+  // Effect CP
+  if (cp_eff !== null) {
+    var cx_eff = xScale(cp_eff + 1);
+    parts.push('<line x1="' + cx_eff + '" y1="' + yTopOff + '" x2="' + cx_eff + '" y2="' + (yTopOff + TOP_H) + '" stroke="var(--red)" stroke-width="2" stroke-dasharray="5,3" opacity="0.9"\/>');
+    parts.push('<text x="' + cx_eff + '" y="' + (yTopOff + TOP_H - 4) + '" text-anchor="middle" font-size="10" fill="var(--red)">Effect CP (step ' + (cp_eff + 1) + ')<\/text>');
+  }
+  // Sig CP
+  if (cp_sig !== null) {
+    var cx_sig = xScale(cp_sig + 1);
+    parts.push('<line x1="' + cx_sig + '" y1="' + yMidOff + '" x2="' + cx_sig + '" y2="' + (yMidOff + MID_H) + '" stroke="var(--red)" stroke-width="2" stroke-dasharray="5,3" opacity="0.9"\/>');
+    parts.push('<text x="' + (cx_sig + 3) + '" y="' + (yMidOff + 12) + '" font-size="9" fill="var(--red)">flip<\/text>');
+  }
+  // Het CP
+  if (cp_het !== null) {
+    var cx_het = xScale(cp_het + 1);
+    parts.push('<line x1="' + cx_het + '" y1="' + yBotOff + '" x2="' + cx_het + '" y2="' + (yBotOff + BOT_H) + '" stroke="var(--red)" stroke-width="2" stroke-dasharray="5,3" opacity="0.9"\/>');
+    parts.push('<text x="' + (cx_het + 3) + '" y="' + (yBotOff + 28) + '" font-size="10" fill="var(--red)">Het spike (step ' + (cp_het + 1) + ')<\/text>');
+  }
+
+  // -- X-AXIS LABELS --
+  var axisY = yBotOff + BOT_H + 16;
+  var step_labels = k <= 20 ? 1 : Math.ceil(k / 15);
+  for (var t = 0; t < k; t += step_labels) {
+    var lx = xScale(t + 1);
+    parts.push('<line x1="' + lx + '" y1="' + (yBotOff + BOT_H) + '" x2="' + lx + '" y2="' + (yBotOff + BOT_H + 4) + '" stroke="var(--text2)" stroke-width="1"\/>');
+    parts.push('<text x="' + lx + '" y="' + axisY + '" text-anchor="middle" font-size="9" fill="var(--text2)">' + (t + 1) + '<\/text>');
+  }
+  parts.push('<text x="' + (PAD_L + chartW / 2) + '" y="' + (axisY + 12) + '" text-anchor="middle" font-size="10" fill="var(--text2)">Study number (cumulative order)<\/text>');
+
+  // -- LEGEND --
+  var legX = PAD_L + chartW - 150, legY = yTopOff + 24;
+  parts.push('<rect x="' + legX + '" y="' + legY + '" width="145" height="52" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1" opacity="0.9"\/>');
+  parts.push('<line x1="' + (legX + 8) + '" y1="' + (legY + 14) + '" x2="' + (legX + 26) + '" y2="' + (legY + 14) + '" stroke="var(--blue)" stroke-width="2"\/>');
+  parts.push('<text x="' + (legX + 30) + '" y="' + (legY + 18) + '" font-size="10" fill="var(--text2)">Before CP (drifting)<\/text>');
+  parts.push('<line x1="' + (legX + 8) + '" y1="' + (legY + 30) + '" x2="' + (legX + 26) + '" y2="' + (legY + 30) + '" stroke="var(--green)" stroke-width="2"\/>');
+  parts.push('<text x="' + (legX + 30) + '" y="' + (legY + 34) + '" font-size="10" fill="var(--text2)">After CP (stable)<\/text>');
+  parts.push('<line x1="' + (legX + 8) + '" y1="' + (legY + 46) + '" x2="' + (legX + 26) + '" y2="' + (legY + 46) + '" stroke="var(--red)" stroke-width="1.5" stroke-dasharray="5,3"\/>');
+  parts.push('<text x="' + (legX + 30) + '" y="' + (legY + 50) + '" font-size="10" fill="var(--text2)">Changepoint<\/text>');
+
+  parts.push('<\/svg>');
+  return parts.join('');
+}
+
+/* =====================================================================
+   RENDER: REVIEW TABLE
+   ===================================================================== */
+var sortCol = 'review_id';
+var sortAsc = true;
+var expandedIdx = null;
+var currentChartReview = null;
+
+function renderReviewTable() {
+  var traj = DATA.reviews_with_trajectory.slice();
+  // Sort
+  traj.sort(function(a, b) {
+    var av, bv;
+    if (sortCol === 'review_id') { av = a.review_id; bv = b.review_id; }
+    else if (sortCol === 'analysis_name') { av = a.analysis_name; bv = b.analysis_name; }
+    else if (sortCol === 'k') { av = a.k; bv = b.k; }
+    else if (sortCol === 'effect') { av = a.changepoints.effect ? a.changepoints.effect.position : 9999; bv = b.changepoints.effect ? b.changepoints.effect.position : 9999; }
+    else if (sortCol === 'sig') { av = a.changepoints.significance ? 1 : 0; bv = b.changepoints.significance ? 1 : 0; }
+    else if (sortCol === 'het') { av = a.changepoints.heterogeneity ? 1 : 0; bv = b.changepoints.heterogeneity ? 1 : 0; }
+    else if (sortCol === 'stability') { av = a.stability_class; bv = b.stability_class; }
+    else { av = a.review_id; bv = b.review_id; }
+    if (av === bv) return 0;
+    var cmp = (av < bv) ? -1 : 1;
+    return sortAsc ? cmp : -cmp;
+  });
+
+  var cols = [
+    { key: 'review_id', label: 'Review ID' },
+    { key: 'analysis_name', label: 'Analysis' },
+    { key: 'k', label: 'k' },
+    { key: 'effect', label: 'Effect CP' },
+    { key: 'sig', label: 'Sig Flip' },
+    { key: 'het', label: 'Het Spike' },
+    { key: 'stability', label: 'Stability' }
+  ];
+
+  var h = '<table class="sortable-table"><thead><tr>';
+  cols.forEach(function(c) {
+    var icon = (sortCol === c.key) ? (sortAsc ? ' &#9650;' : ' &#9660;') : ' &#8693;';
+    h += '<th onclick="sortTable(\'' + c.key + '\')">' + escapeHtml(c.label) + '<span class="sort-icon">' + icon + '<\/span><\/th>';
+  });
+  h += '<\/tr><\/thead><tbody>';
+
+  traj.forEach(function(r, i) {
+    var origIdx = DATA.reviews_with_trajectory.indexOf(r);
+    var cls = expandedIdx === origIdx ? ' expanded' : '';
+    var effCP = r.changepoints.effect;
+    var sigCP = r.changepoints.significance;
+    var hetCP = r.changepoints.heterogeneity;
+    h += '<tr class="row-clickable' + cls + '" onclick="toggleDetail(' + origIdx + ')">';
+    h += '<td><strong>' + escapeHtml(r.review_id) + '<\/strong><\/td>';
+    h += '<td>' + escapeHtml(r.analysis_name) + '<\/td>';
+    h += '<td>' + r.k + '<\/td>';
+    h += '<td>' + (effCP ? 'Step ' + (effCP.position + 1) : '<span class="cp-na">None<\/span>') + '<\/td>';
+    h += '<td>' + (sigCP ? '<span class="sig-yes">Step ' + (sigCP.position + 1) + '<\/span>' : '<span class="sig-no">None<\/span>') + '<\/td>';
+    h += '<td>' + (hetCP ? 'Step ' + (hetCP.position + 1) : '<span class="cp-na">None<\/span>') + '<\/td>';
+    h += '<td><span class="cls-badge ' + stabClass(r.stability_class) + '">' + escapeHtml(r.stability_class) + '<\/span><\/td>';
+    h += '<\/tr>';
+
+    if (expandedIdx === origIdx) {
+      h += '<tr><td colspan="7"><div class="detail-panel">';
+      h += '<div class="cp-grid">';
+      h += '<div class="cp-box"><div class="cp-val ' + (effCP ? 'has-cp' : 'no-cp') + '">' + (effCP ? 'Step ' + (effCP.position + 1) : '\u2014') + '<\/div><div class="cp-label">Effect Changepoint<\/div><\/div>';
+      h += '<div class="cp-box"><div class="cp-val ' + (sigCP ? 'has-cp' : 'no-cp') + '">' + (sigCP ? 'Step ' + (sigCP.position + 1) : '\u2014') + '<\/div><div class="cp-label">Significance Flip<\/div><\/div>';
+      h += '<div class="cp-box"><div class="cp-val ' + (hetCP ? 'has-cp' : 'no-cp') + '">' + (hetCP ? 'Step ' + (hetCP.position + 1) : '\u2014') + '<\/div><div class="cp-label">Heterogeneity Spike<\/div><\/div>';
+      h += '<\/div>';
+      h += '<div class="chart-container" id="chartFor_' + origIdx + '">' + renderTrajectoryChart(r) + '<\/div>';
+      h += '<\/div><\/td><\/tr>';
+    }
+  });
+  h += '<\/tbody><\/table>';
+  document.getElementById('trajTableWrap').innerHTML = h;
+  currentChartReview = (expandedIdx !== null) ? DATA.reviews_with_trajectory[expandedIdx] : null;
+}
+
+function sortTable(col) {
+  if (sortCol === col) { sortAsc = !sortAsc; }
+  else { sortCol = col; sortAsc = true; }
+  renderReviewTable();
+}
+
+function toggleDetail(idx) {
+  expandedIdx = (expandedIdx === idx) ? null : idx;
+  currentChartReview = (expandedIdx !== null) ? DATA.reviews_with_trajectory[expandedIdx] : null;
+  renderReviewTable();
+}
+
+function toggleAgg() {
+  var c = document.getElementById('aggContent');
+  var btn = document.getElementById('aggBtn');
+  if (c.classList.contains('open')) {
+    c.classList.remove('open');
+    btn.textContent = '\u25bc Show 393 aggregate-only reviews (no trajectory available)';
+    return;
+  }
+  c.classList.add('open');
+  btn.textContent = '\u25b2 Hide aggregate-only reviews';
+  // Render aggregate table if not already done
+  if (document.getElementById('aggTableWrap').innerHTML.trim() === '') {
+    renderAggTable();
+  }
+}
+
+function renderAggTable() {
+  var agg = DATA.reviews_aggregate_only;
+  var h = '<table class="sortable-table"><thead><tr>';
+  ['Review ID','Analysis','k','Effect (theta)','p-value','I\u00b2','tau\u00b2'].forEach(function(l) {
+    h += '<th>' + escapeHtml(l) + '<\/th>';
+  });
+  h += '<\/tr><\/thead><tbody>';
+  agg.slice(0, 393).forEach(function(r) {
+    h += '<tr>';
+    h += '<td>' + escapeHtml(r.review_id) + '<\/td>';
+    h += '<td>' + escapeHtml(r.analysis_name || '') + '<\/td>';
+    h += '<td>' + r.k + '<\/td>';
+    h += '<td>' + (r.theta !== null ? fmt(r.theta, 3) : 'N/A') + '<\/td>';
+    h += '<td>' + (r.p_value !== null ? (r.p_value < 0.001 ? '&lt;0.001' : fmt(r.p_value, 3)) : 'N/A') + '<\/td>';
+    h += '<td>' + (r.I2 !== null ? fmt(r.I2, 1) + '%' : 'N/A') + '<\/td>';
+    h += '<td>' + (r.tau2 !== null ? fmt(r.tau2, 4) : 'N/A') + '<\/td>';
+    h += '<\/tr>';
+  });
+  h += '<\/tbody><\/table>';
+  document.getElementById('aggTableWrap').innerHTML = h;
+}
+
+/* =====================================================================
+   CUSTOM MODE
+   ===================================================================== */
+var customRows = [];
+
+var EXAMPLE_STUDIES = [
+  {name:'Smith 2010',year:2010,yi:0.15,sei:0.20},
+  {name:'Jones 2011',year:2011,yi:0.30,sei:0.25},
+  {name:'Lee 2012',year:2012,yi:0.22,sei:0.18},
+  {name:'Brown 2013',year:2013,yi:0.40,sei:0.22},
+  {name:'Garcia 2014',year:2014,yi:0.55,sei:0.15},
+  {name:'Wilson 2015',year:2015,yi:0.35,sei:0.12},
+  {name:'Chen 2016',year:2016,yi:0.80,sei:0.30},
+  {name:'Patel 2017',year:2017,yi:0.42,sei:0.14},
+  {name:'Kim 2018',year:2018,yi:0.38,sei:0.11},
+  {name:'Ahmed 2019',year:2019,yi:0.41,sei:0.13}
+];
+
+function addRow(data) {
+  var d = data || {name:'',year:'',yi:'',sei:''};
+  customRows.push(d);
+  renderInputTable();
+}
+
+function removeRow(i) {
+  customRows.splice(i, 1);
+  renderInputTable();
+}
+
+function clearRows() {
+  customRows = [];
+  renderInputTable();
+  document.getElementById('customResults').innerHTML = '';
+}
+
+function loadExample() {
+  customRows = EXAMPLE_STUDIES.map(function(s) { return {name:s.name, year:s.year, yi:s.yi, sei:s.sei}; });
+  renderInputTable();
+  document.getElementById('customResults').innerHTML = '';
+}
+
+function renderInputTable() {
+  var body = document.getElementById('inputBody');
+  var h = '';
+  if (customRows.length === 0) {
+    h = '<tr><td colspan="6" class="empty-msg">No studies. Click "Add Row" or "Load Example".<\/td><\/tr>';
+  } else {
+    customRows.forEach(function(row, i) {
+      h += '<tr>';
+      h += '<td style="color:var(--text2);font-size:0.85rem;">' + (i+1) + '<\/td>';
+      h += '<td><input type="text" value="' + escapeHtml(String(row.name || '')) + '" oninput="customRows[' + i + '].name=this.value" placeholder="Study name"><\/td>';
+      h += '<td><input type="number" value="' + (row.year || '') + '" oninput="customRows[' + i + '].year=+this.value" placeholder="Year" style="width:70px;"><\/td>';
+      h += '<td><input type="number" value="' + (row.yi !== '' ? row.yi : '') + '" oninput="customRows[' + i + '].yi=parseFloat(this.value)" step="any" placeholder="0.00" style="width:80px;"><\/td>';
+      h += '<td><input type="number" value="' + (row.sei !== '' ? row.sei : '') + '" oninput="customRows[' + i + '].sei=parseFloat(this.value)" step="any" placeholder="0.00" style="width:80px;"><\/td>';
+      h += '<td><button class="btn btn-danger" style="padding:3px 8px;font-size:0.78rem;" onclick="removeRow(' + i + ')">&#10005;<\/button><\/td>';
+      h += '<\/tr>';
+    });
+  }
+  body.innerHTML = h;
+}
+
+function runAnalysis() {
+  // Collect valid rows
+  var studies = customRows.filter(function(r) {
+    return typeof r.yi === 'number' && isFinite(r.yi) && typeof r.sei === 'number' && isFinite(r.sei) && r.sei > 0;
+  });
+  if (studies.length < 2) {
+    document.getElementById('customResults').innerHTML = '<div class="card" style="border-color:var(--red);color:var(--red);padding:14px;">Need at least 2 valid studies (numeric yi and sei > 0).<\/div>';
+    return;
+  }
+  // Sort by year if provided
+  studies.sort(function(a, b) { return (a.year || 0) - (b.year || 0); });
+  var yi = studies.map(function(s) { return s.yi; });
+  var sei = studies.map(function(s) { return s.sei; });
+  var traj = cumulativeMeta(yi, sei);
+  var k = traj.length;
+
+  var est_seq = traj.map(function(t) { return t.est; });
+  var sig_seq = traj.map(function(t) { return t.sig ? 1 : 0; });
+  var i2_seq = traj.map(function(t) { return t.I2; });
+
+  var eff_cp = cusumChangepoint(est_seq);
+  var sig_cp = binarySegmentationCP(sig_seq);
+  var het_cp = peltChangepoint(i2_seq);
+  var stab = classifyStability(eff_cp, k);
+
+  // Build pseudo-review object
+  var customReview = {
+    review_id: 'Custom',
+    analysis_name: 'User-entered data (' + k + ' studies)',
+    k: k,
+    cumulative: traj,
+    changepoints: {
+      effect: eff_cp !== null ? {position: eff_cp} : null,
+      significance: sig_cp !== null ? {position: sig_cp} : null,
+      heterogeneity: het_cp !== null ? {position: het_cp} : null
+    },
+    stability_class: stab
+  };
+
+  currentChartReview = customReview;
+
+  var finalRes = traj[k - 1];
+  var resHTML = '<div class="card">';
+  resHTML += '<div class="results-title">Analysis Results &mdash; ' + k + ' studies</div>';
+  resHTML += '<div class="cp-grid">';
+  resHTML += '<div class="cp-box"><div class="cp-val ' + (eff_cp !== null ? 'has-cp' : 'no-cp') + '">' + (eff_cp !== null ? 'Step ' + (eff_cp + 1) : '\u2014') + '<\/div><div class="cp-label">Effect Changepoint<\/div><\/div>';
+  resHTML += '<div class="cp-box"><div class="cp-val ' + (sig_cp !== null ? 'has-cp' : 'no-cp') + '">' + (sig_cp !== null ? 'Step ' + (sig_cp + 1) : '\u2014') + '<\/div><div class="cp-label">Significance Flip<\/div><\/div>';
+  resHTML += '<div class="cp-box"><div class="cp-val ' + (het_cp !== null ? 'has-cp' : 'no-cp') + '">' + (het_cp !== null ? 'Step ' + (het_cp + 1) : '\u2014') + '<\/div><div class="cp-label">Heterogeneity Spike<\/div><\/div>';
+  resHTML += '<\/div>';
+  resHTML += '<div style="margin:10px 0;font-size:0.88rem;color:var(--text2);">';
+  resHTML += 'Final pooled estimate: <strong>' + fmt(finalRes.est, 3) + '<\/strong> ';
+  resHTML += '(95% CI: ' + fmt(finalRes.ci_lo, 3) + ' to ' + fmt(finalRes.ci_hi, 3) + ') ';
+  resHTML += ' | p = ' + (finalRes.pval < 0.001 ? '&lt;0.001' : fmt(finalRes.pval, 3));
+  resHTML += ' | I&sup2; = ' + fmt(finalRes.I2, 1) + '%';
+  resHTML += ' | tau&sup2; = ' + fmt(finalRes.tau2, 4);
+  resHTML += '<\/div>';
+  resHTML += '<div style="margin:8px 0 4px;"><span class="cls-badge ' + stabClass(stab) + '">' + escapeHtml(stab) + '<\/span><\/div>';
+  resHTML += '<div class="chart-container" style="margin-top:14px;" id="customChart">' + renderTrajectoryChart(customReview) + '<\/div>';
+  resHTML += '<\/div>';
+  document.getElementById('customResults').innerHTML = resHTML;
+}
+
+/* =====================================================================
+   EXPORT
+   ===================================================================== */
+function exportCSV() {
+  var rows = [['Review ID','Analysis','k','Effect CP Step','Sig Flip Step','Het Spike Step','Stability Class']];
+  DATA.reviews_with_trajectory.forEach(function(r) {
+    var cp = r.changepoints;
+    rows.push([
+      csvSafe(r.review_id),
+      csvSafe(r.analysis_name),
+      r.k,
+      cp.effect ? cp.effect.position + 1 : '',
+      cp.significance ? cp.significance.position + 1 : '',
+      cp.heterogeneity ? cp.heterogeneity.position + 1 : '',
+      csvSafe(r.stability_class)
+    ]);
+  });
+  var csv = rows.map(function(r) { return r.join(','); }).join('\r\n');
+  var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'metashift_results.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 2000);
+}
+
+function getSVGContent() {
+  if (!currentChartReview) { alert('Expand or run a review to get a chart first.'); return null; }
+  var svgStr = renderTrajectoryChart(currentChartReview);
+  // Replace CSS variables with concrete values for standalone SVG
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  svgStr = svgStr.replace(/var\(--surface\)/g, isDark ? '#1a1d24' : '#ffffff');
+  svgStr = svgStr.replace(/var\(--surface2\)/g, isDark ? '#22252f' : '#f0f2f6');
+  svgStr = svgStr.replace(/var\(--border\)/g, isDark ? '#2e3240' : '#dde1e9');
+  svgStr = svgStr.replace(/var\(--text2\)/g, isDark ? '#8b91a5' : '#5a6070');
+  svgStr = svgStr.replace(/var\(--text\)/g, isDark ? '#e8eaf0' : '#1a1d24');
+  svgStr = svgStr.replace(/var\(--blue\)/g, isDark ? '#3b82f6' : '#2563eb');
+  svgStr = svgStr.replace(/var\(--green\)/g, isDark ? '#22c55e' : '#16a34a');
+  svgStr = svgStr.replace(/var\(--red\)/g, isDark ? '#ef4444' : '#dc2626');
+  return '<?xml version="1.0" encoding="UTF-8"?>\n' + svgStr;
+}
+
+function exportSVG() {
+  var svgContent = getSVGContent();
+  if (!svgContent) return;
+  var blob = new Blob([svgContent], {type: 'image/svg+xml'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'metashift_chart.svg';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 2000);
+}
+
+function exportPNG() {
+  var svgContent = getSVGContent();
+  if (!svgContent) return;
+  var blob = new Blob([svgContent], {type: 'image/svg+xml'});
+  var url = URL.createObjectURL(blob);
+  var img = new Image();
+  img.onload = function() {
+    var canvas = document.createElement('canvas');
+    canvas.width = img.width || 680;
+    canvas.height = img.height || 570;
+    var ctx = canvas.getContext('2d');
+    ctx.fillStyle = document.documentElement.getAttribute('data-theme') === 'dark' ? '#1a1d24' : '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0);
+    canvas.toBlob(function(pngBlob) {
+      var pngUrl = URL.createObjectURL(pngBlob);
+      var a = document.createElement('a');
+      a.href = pngUrl; a.download = 'metashift_chart.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function() { URL.revokeObjectURL(pngUrl); }, 2000);
+    }, 'image/png');
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+}
+
+/* =====================================================================
+   INIT
+   ===================================================================== */
+function init() {
+  if (!DATA) { document.body.innerHTML = '<p style="color:red;padding:40px;">ERROR: DATA not loaded.</p>'; return; }
+  renderSummary();
+  renderStabilityChart();
+  renderReviewTable();
+  // Restore mode
+  var m = localStorage.getItem('ms_mode') || 'corpus';
+  setMode(m);
+  // Init custom table with some empty rows
+  if (customRows.length === 0) {
+    addRow(); addRow(); addRow();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+
+<script>
+/* =====================================================================
+   EMBEDDED DATA (inlined from data/cumulative.json)
+   ===================================================================== */
+</script>
+<script id="dataScript">
+DATA = {"reviews_with_trajectory": [{"review_id": "CD006140", "analysis_name": "Acceptability", "k": 8, "studies": [{"idx": 1, "yi": -0.820981, "sei": 0.328585}, {"idx": 2, "yi": -0.432899, "sei": 0.16305}, {"idx": 3, "yi": -0.075008, "sei": 0.032652}, {"idx": 4, "yi": -0.106034, "sei": 0.071075}, {"idx": 5, "yi": -0.121361, "sei": 0.102701}, {"idx": 6, "yi": -0.046716, "sei": 0.018789}, {"idx": 7, "yi": -0.89276, "sei": 0.137441}, {"idx": 8, "yi": -0.050431, "sei": 0.983021}], "cumulative": [{"est": -0.8209805520698302, "se": 0.3285852633629204, "ci_lo": -1.4650076682611541, "ci_hi": -0.17695343587850632, "pval": 0.01247094073055921, "tau2": 0.0, "I2": 0.0, "Q": 0.0, "step": 1, "sig": true}, {"est": -0.522087, "se": 0.163272, "ci_lo": -0.8421, "ci_hi": -0.202074, "pval": 0.00138563, "tau2": 0.008027, "I2": 10.7, "Q": 1.1193, "step": 2, "sig": true}, {"est": -0.348789, "se": 0.195992, "ci_lo": -0.732933, "ci_hi": 0.035354, "pval": 0.0751393, "tau2": 0.083897, "I2": 79.1, "Q": 9.5506, "step": 3, "sig": false}, {"est": -0.191187, "se": 0.085691, "ci_lo": -0.359141, "ci_hi": -0.023232, "pval": 0.0256738, "tau2": 0.016235, "I2": 68.6, "Q": 9.5682, "step": 4, "sig": true}, {"est": -0.160326, "se": 0.064825, "ci_lo": -0.287383, "ci_hi": -0.033269, "pval": 0.01339032, "tau2": 0.010214, "I2": 58.4, "Q": 9.6185, "step": 5, "sig": true}, {"est": -0.101511, "se": 0.038077, "ci_lo": -0.176142, "ci_hi": -0.026881, "pval": 0.00767663, "tau2": 0.003646, "I2": 58.5, "Q": 12.0438, "step": 6, "sig": true}, {"est": -0.237369, "se": 0.067893, "ci_lo": -0.370439, "ci_hi": -0.1043, "pval": 0.00047194, "tau2": 0.020889, "I2": 87.5, "Q": 48.0256, "step": 7, "sig": true}, {"est": -0.235238, "se": 0.067099, "ci_lo": -0.366753, "ci_hi": -0.103724, "pval": 0.00045528, "tau2": 0.020376, "I2": 85.4, "Q": 48.0262, "step": 8, "sig": true}], "changepoints": {"effect": null, "significance": null, "heterogeneity": {"position": 3, "type": "spike"}}, "stability_class": "Never Stabilized"}, {"review_id": "CD001837", "analysis_name": "Quit at longest follow-up (6 + months)", "k": 49, "studies": [{"idx": 1, "yi": 0.134568, "sei": 0.169391}, {"idx": 2, "yi": 0.788457, "sei": 0.291282}, {"idx": 3, "yi": 0.117069, "sei": 0.115375}, {"idx": 4, "yi": 0.980829, "sei": 0.329134}, {"idx": 5, "yi": 0.302281, "sei": 0.29827}, {"idx": 6, "yi": 0.674099, "sei": 0.427842}, {"idx": 7, "yi": -0.22809, "sei": 0.269009}, {"idx": 8, "yi": -0.093559, "sei": 0.111896}, {"idx": 9, "yi": 0.723, "sei": 0.49018}, {"idx": 10, "yi": 0.704321, "sei": 0.309784}, {"idx": 11, "yi": 0.010929, "sei": 0.444875}, {"idx": 12, "yi": -0.120652, "sei": 0.191}, {"idx": 13, "yi": 0.389464, "sei": 0.453685}, {"idx": 14, "yi": 0.69799, "sei": 0.38135}, {"idx": 15, "yi": -0.432864, "sei": 0.526395}, {"idx": 16, "yi": 0.07164, "sei": 0.143477}, {"idx": 17, "yi": -0.106897, "sei": 0.157121}, {"idx": 18, "yi": -0.001221, "sei": 0.218142}, {"idx": 19, "yi": -0.073709, "sei": 0.265575}, {"idx": 20, "yi": 0.385398, "sei": 0.170519}, {"idx": 21, "yi": -0.033324, "sei": 0.142507}, {"idx": 22, "yi": 0.234965, "sei": 0.129741}, {"idx": 23, "yi": 0.847752, "sei": 0.294329}, {"idx": 24, "yi": 0.37382, "sei": 0.20686}, {"idx": 25, "yi": 1.006805, "sei": 0.420955}, {"idx": 26, "yi": 0.637058, "sei": 0.428643}, {"idx": 27, "yi": -0.182322, "sei": 0.516388}, {"idx": 28, "yi": -0.001419, "sei": 0.168483}, {"idx": 29, "yi": 0.283499, "sei": 0.102937}, {"idx": 30, "yi": 0.399273, "sei": 0.240737}, {"idx": 31, "yi": 0.136512, "sei": 0.136995}, {"idx": 32, "yi": 0.1415, "sei": 0.189904}, {"idx": 33, "yi": 0.122573, "sei": 0.170623}, {"idx": 34, "yi": 0.446287, "sei": 0.216663}, {"idx": 35, "yi": 0.095104, "sei": 0.223283}, {"idx": 36, "yi": 0.494565, "sei": 0.639422}, {"idx": 37, "yi": -1.056053, "sei": 0.605219}, {"idx": 38, "yi": 0.357585, "sei": 0.123623}, {"idx": 39, "yi": 1.277127, "sei": 0.3082}, {"idx": 40, "yi": 0.279314, "sei": 0.218143}, {"idx": 41, "yi": 0.301422, "sei": 0.152451}, {"idx": 42, "yi": 0.079052, "sei": 0.162087}, {"idx": 43, "yi": 0.282078, "sei": 0.24878}, {"idx": 44, "yi": 0.698089, "sei": 0.38431}, {"idx": 45, "yi": 0.404531, "sei": 0.248597}, {"idx": 46, "yi": 0.433964, "sei": 0.1408}, {"idx": 47, "yi": 0.157381, "sei": 0.135739}, {"idx": 48, "yi": 0.638192, "sei": 0.200362}, {"idx": 49, "yi": 1.550597, "sei": 1.020691}], "cumulative": [{"est": 0.13456847966380442, "se": 0.1693905162684329, "ci_lo": -0.19743693222232406, "ci_hi": 0.4665738915499329, "pval": 0.42694636980273915, "tau2": 0.0, "I2": 0.0, "Q": 0.0, "step": 1, "sig": false}, {"est": 0.418576, "se": 0.324113, "ci_lo": -0.216685, "ci_hi": 1.053837, "pval": 0.19654737, "tau2": 0.157016, "I2": 73.4, "Q": 3.7659, "step": 2, "sig": false}, {"est": 0.255575, "se": 0.158375, "ci_lo": -0.05484, "ci_hi": 0.56599, "pval": 0.10658536, "tau2": 0.042411, "I2": 57.7, "Q": 4.7268, "step": 3, "sig": false}, {"est": 0.407861, "se": 0.188072, "ci_lo": 0.039239, "ci_hi": 0.776483, "pval": 0.03011001, "tau2": 0.092727, "I2": 70.4, "Q": 10.1331, "step": 4, "sig": true}, {"est": 0.375001, "se": 0.155315, "ci_lo": 0.070584, "ci_hi": 0.679418, "pval": 0.01575853, "tau2": 0.067389, "I2": 60.7, "Q": 10.1695, "step": 5, "sig": true}, {"est": 0.396778, "se": 0.144857, "ci_lo": 0.112859, "ci_hi": 0.680697, "pval": 0.00616066, "tau2": 0.062076, "I2": 55.1, "Q": 11.1261, "step": 6, "sig": true}, {"est": 0.317621, "se": 0.139853, "ci_lo": 0.043509, "ci_hi": 0.591732, "pval": 0.02314032, "tau2": 0.070807, "I2": 57.7, "Q": 14.1793, "step": 7, "sig": true}, {"est": 0.237299, "se": 0.124138, "ci_lo": -0.006012, "ci_hi": 0.48061, "pval": 0.05593164, "tau2": 0.067765, "I2": 64.1, "Q": 19.4808, "step": 8, "sig": false}, {"est": 0.261124, "se": 0.121597, "ci_lo": 0.022795, "ci_hi": 0.499454, "pval": 0.0317564, "tau2": 0.068603, "I2": 61.9, "Q": 20.9823, "step": 9, "sig": true}, {"est": 0.303481, "se": 0.120085, "ci_lo": 0.068115, "ci_hi": 0.538847, "pval": 0.01149676, "tau2": 0.075964, "I2": 63.0, "Q": 24.3088, "step": 10, "sig": true}, {"est": 0.284362, "se": 0.114006, "ci_lo": 0.060911, "ci_hi": 0.507814, "pval": 0.01262124, "tau2": 0.069414, "I2": 59.0, "Q": 24.4059, "step": 11, "sig": true}, {"est": 0.236202, "se": 0.105103, "ci_lo": 0.030199, "ci_hi": 0.442205, "pval": 0.02461886, "tau2": 0.064018, "I2": 58.0, "Q": 26.1994, "step": 12, "sig": true}, {"est": 0.238954, "se": 0.101099, "ci_lo": 0.040799, "ci_hi": 0.437109, "pval": 0.0181004, "tau2": 0.059822, "I2": 54.8, "Q": 26.5394, "step": 13, "sig": true}, {"est": 0.263132, "se": 0.099927, "ci_lo": 0.067275, "ci_hi": 0.45899, "pval": 0.00845754, "tau2": 0.062687, "I2": 54.7, "Q": 28.7292, "step": 14, "sig": true}, {"est": 0.243022, "se": 0.098344, "ci_lo": 0.050269, "ci_hi": 0.435776, "pval": 0.01346785, "tau2": 0.062337, "I2": 53.2, "Q": 29.9002, "step": 15, "sig": true}, {"est": 0.215438, "se": 0.087509, "ci_lo": 0.043921, "ci_hi": 0.386955, "pval": 0.01382006, "tau2": 0.049594, "I2": 50.1, "Q": 30.0598, "step": 16, "sig": true}, {"est": 0.182491, "se": 0.081866, "ci_lo": 0.022034, "ci_hi": 0.342949, "pval": 0.02580428, "tau2": 0.046407, "I2": 50.0, "Q": 32.0111, "step": 17, "sig": true}, {"est": 0.165841, "se": 0.076823, "ci_lo": 0.015269, "ci_hi": 0.316414, "pval": 0.03086931, "tau2": 0.041426, "I2": 47.2, "Q": 32.2194, "step": 18, "sig": true}, {"est": 0.151006, "se": 0.073396, "ci_lo": 0.00715, "ci_hi": 0.294863, "pval": 0.03964643, "tau2": 0.03819, "I2": 44.8, "Q": 32.6131, "step": 19, "sig": true}, {"est": 0.169205, "se": 0.071087, "ci_lo": 0.029875, "ci_hi": 0.308534, "pval": 0.01730032, "tau2": 0.03922, "I2": 46.3, "Q": 35.388, "step": 20, "sig": true}, {"est": 0.14988, "se": 0.06634, "ci_lo": 0.019853, "ci_hi": 0.279908, "pval": 0.02386702, "tau2": 0.034993, "I2": 44.9, "Q": 36.3293, "step": 21, "sig": true}, {"est": 0.153478, "se": 0.061883, "ci_lo": 0.032188, "ci_hi": 0.274768, "pval": 0.01313305, "tau2": 0.031124, "I2": 43.7, "Q": 37.3261, "step": 22, "sig": true}, {"est": 0.182932, "se": 0.064794, "ci_lo": 0.055935, "ci_hi": 0.309929, "pval": 0.00475371, "tau2": 0.039951, "I2": 49.4, "Q": 43.4452, "step": 23, "sig": true}, {"est": 0.191339, "se": 0.062772, "ci_lo": 0.068306, "ci_hi": 0.314372, "pval": 0.00230261, "tau2": 0.038884, "I2": 48.7, "Q": 44.8148, "step": 24, "sig": true}, {"est": 0.210346, "se": 0.064295, "ci_lo": 0.084328, "ci_hi": 0.336363, "pval": 0.00106956, "tau2": 0.044178, "I2": 51.1, "Q": 49.0502, "step": 25, "sig": true}, {"est": 0.218025, "se": 0.063754, "ci_lo": 0.093066, "ci_hi": 0.342983, "pval": 0.00062686, "tau2": 0.04427, "I2": 50.4, "Q": 50.3592, "step": 26, "sig": true}, {"est": 0.211812, "se": 0.062845, "ci_lo": 0.088636, "ci_hi": 0.334989, "pval": 0.00075077, "tau2": 0.042939, "I2": 48.8, "Q": 50.7679, "step": 27, "sig": true}, {"est": 0.198274, "se": 0.060076, "ci_lo": 0.080525, "ci_hi": 0.316022, "pval": 0.00096563, "tau2": 0.04, "I2": 47.6, "Q": 51.5005, "step": 28, "sig": true}, {"est": 0.200918, "se": 0.056493, "ci_lo": 0.090193, "ci_hi": 0.311644, "pval": 0.00037584, "tau2": 0.036012, "I2": 47.4, "Q": 53.2265, "step": 29, "sig": true}, {"est": 0.206708, "se": 0.0552, "ci_lo": 0.098515, "ci_hi": 0.3149, "pval": 0.00018067, "tau2": 0.035096, "I2": 46.5, "Q": 54.2161, "step": 30, "sig": true}, {"est": 0.200009, "se": 0.052253, "ci_lo": 0.097593, "ci_hi": 0.302424, "pval": 0.00012938, "tau2": 0.031432, "I2": 44.7, "Q": 54.2498, "step": 31, "sig": true}, {"est": 0.195803, "se": 0.050281, "ci_lo": 0.097253, "ci_hi": 0.294353, "pval": 9.856e-05, "tau2": 0.029077, "I2": 42.9, "Q": 54.2598, "step": 32, "sig": true}, {"est": 0.190799, "se": 0.048264, "ci_lo": 0.096202, "ci_hi": 0.285397, "pval": 7.714e-05, "tau2": 0.026719, "I2": 41.1, "Q": 54.3064, "step": 33, "sig": true}, {"est": 0.198764, "se": 0.047582, "ci_lo": 0.105504, "ci_hi": 0.292024, "pval": 2.952e-05, "tau2": 0.026875, "I2": 41.1, "Q": 56.0266, "step": 34, "sig": true}, {"est": 0.194417, "se": 0.046232, "ci_lo": 0.103803, "ci_hi": 0.285031, "pval": 2.609e-05, "tau2": 0.025214, "I2": 39.4, "Q": 56.1238, "step": 35, "sig": true}, {"est": 0.195097, "se": 0.045752, "ci_lo": 0.105424, "ci_hi": 0.284771, "pval": 2.007e-05, "tau2": 0.024307, "I2": 37.9, "Q": 56.3905, "step": 36, "sig": true}, {"est": 0.190944, "se": 0.046963, "ci_lo": 0.098896, "ci_hi": 0.282992, "pval": 4.789e-05, "tau2": 0.027691, "I2": 40.4, "Q": 60.4479, "step": 37, "sig": true}, {"est": 0.1988, "se": 0.045632, "ci_lo": 0.109362, "ci_hi": 0.288238, "pval": 1.322e-05, "tau2": 0.027246, "I2": 41.1, "Q": 62.8043, "step": 38, "sig": true}, {"est": 0.224936, "se": 0.049433, "ci_lo": 0.128048, "ci_hi": 0.321825, "pval": 5.36e-06, "tau2": 0.039121, "I2": 49.7, "Q": 75.4776, "step": 39, "sig": true}, {"est": 0.22542, "se": 0.048196, "ci_lo": 0.130956, "ci_hi": 0.319885, "pval": 2.91e-06, "tau2": 0.037423, "I2": 48.5, "Q": 75.658, "step": 40, "sig": true}, {"est": 0.227029, "se": 0.046629, "ci_lo": 0.135636, "ci_hi": 0.318422, "pval": 1.12e-06, "tau2": 0.035388, "I2": 47.5, "Q": 76.1928, "step": 41, "sig": true}, {"est": 0.220922, "se": 0.045238, "ci_lo": 0.132256, "ci_hi": 0.309587, "pval": 1.04e-06, "tau2": 0.03361, "I2": 46.5, "Q": 76.6633, "step": 42, "sig": true}, {"est": 0.221398, "se": 0.044324, "ci_lo": 0.134524, "ci_hi": 0.308272, "pval": 5.9e-07, "tau2": 0.032294, "I2": 45.3, "Q": 76.8034, "step": 43, "sig": true}, {"est": 0.226858, "se": 0.04424, "ci_lo": 0.140148, "ci_hi": 0.313568, "pval": 2.9e-07, "tau2": 0.032767, "I2": 45.3, "Q": 78.5431, "step": 44, "sig": true}, {"est": 0.229961, "se": 0.043545, "ci_lo": 0.144613, "ci_hi": 0.315308, "pval": 1.3e-07, "tau2": 0.032016, "I2": 44.5, "Q": 79.2589, "step": 45, "sig": true}, {"est": 0.237231, "se": 0.042807, "ci_lo": 0.153329, "ci_hi": 0.321134, "pval": 3e-08, "tau2": 0.032133, "I2": 45.1, "Q": 82.002, "step": 46, "sig": true}, {"est": 0.233093, "se": 0.041348, "ci_lo": 0.152051, "ci_hi": 0.314135, "pval": 2e-08, "tau2": 0.029967, "I2": 44.0, "Q": 82.1234, "step": 47, "sig": true}, {"est": 0.244173, "se": 0.041595, "ci_lo": 0.162647, "ci_hi": 0.325699, "pval": 0.0, "tau2": 0.032285, "I2": 45.8, "Q": 86.7355, "step": 48, "sig": true}, {"est": 0.246624, "se": 0.041737, "ci_lo": 0.16482, "ci_hi": 0.328428, "pval": 0.0, "tau2": 0.032842, "I2": 45.7, "Q": 88.4539, "step": 49, "sig": true}], "changepoints": {"effect": {"position": 49, "type": "stabilized"}, "significance": {"position": 5, "type": "flipped"}, "heterogeneity": {"position": 16, "type": "spike"}}, "stability_class": "Never Stabilized"}, {"review_id": "CD012712", "analysis_name": "Endotracheal reintubation", "k": 20, "studies": [{"idx": 1, "yi": -1.163151, "sei": 0.460969}, {"idx": 2, "yi": -0.782759, "sei": 0.267678}, {"idx": 3, "yi": -1.021651, "sei": 0.730282}, {"idx": 4, "yi": -0.77584, "sei": 0.381382}, {"idx": 5, "yi": -1.789097, "sei": 0.49648}, {"idx": 6, "yi": -0.967842, "sei": 0.470803}, {"idx": 7, "yi": -1.203973, "sei": 0.61196}, {"idx": 8, "yi": -1.386294, "sei": 0.536179}, {"idx": 9, "yi": -1.299284, "sei": 0.605875}, {"idx": 10, "yi": -0.841174, "sei": 0.322326}, {"idx": 11, "yi": -0.66905, "sei": 0.140839}, {"idx": 12, "yi": -0.782759, "sei": 0.267678}, {"idx": 13, "yi": -1.789097, "sei": 0.49648}, {"idx": 14, "yi": -1.021651, "sei": 0.730282}, {"idx": 15, "yi": -0.967842, "sei": 0.470803}, {"idx": 16, "yi": -0.841174, "sei": 0.322326}, {"idx": 17, "yi": -0.782759, "sei": 0.267678}, {"idx": 18, "yi": -0.841174, "sei": 0.322326}, {"idx": 19, "yi": -1.021651, "sei": 0.730282}, {"idx": 20, "yi": -0.66905, "sei": 0.140839}], "cumulative": [{"est": -1.1631508098056809, "se": 0.4609693203114064, "ci_lo": -2.066650677616037, "ci_hi": -0.25965094199532435, "pval": 0.011626891785579074, "tau2": 0.0, "I2": 0.0, "Q": 0.0, "step": 1, "sig": true}, {"est": -0.878681, "se": 0.231481, "ci_lo": -1.332384, "ci_hi": -0.424978, "pval": 0.00014715, "tau2": 0.0, "I2": 0.0, "Q": 0.5092, "step": 2, "sig": true}, {"est": -0.891734, "se": 0.220661, "ci_lo": -1.32423, "ci_hi": -0.459239, "pval": 5.321e-05, "tau2": 0.0, "I2": 0.0, "Q": 0.5441, "step": 3, "sig": true}, {"est": -0.862668, "se": 0.190996, "ci_lo": -1.23702, "ci_hi": -0.488316, "pval": 6.29e-06, "tau2": 0.0, "I2": 0.0, "Q": 0.6133, "step": 4, "sig": true}, {"est": -0.982099, "se": 0.17826, "ci_lo": -1.331489, "ci_hi": -0.632709, "pval": 4e-08, "tau2": 0.0, "I2": 0.0, "Q": 3.6463, "step": 5, "sig": true}, {"est": -0.980311, "se": 0.16671, "ci_lo": -1.307064, "ci_hi": -0.653559, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 3.6471, "step": 6, "sig": true}, {"est": -0.995763, "se": 0.160849, "ci_lo": -1.311027, "ci_hi": -0.6805, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 3.7715, "step": 7, "sig": true}, {"est": -1.028007, "se": 0.154065, "ci_lo": -1.329975, "ci_hi": -0.726039, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 4.2582, "step": 8, "sig": true}, {"est": -1.044483, "se": 0.149314, "ci_lo": -1.337138, "ci_hi": -0.751828, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 4.4465, "step": 9, "sig": true}, {"est": -1.008563, "se": 0.135483, "ci_lo": -1.27411, "ci_hi": -0.743016, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 4.774, "step": 10, "sig": true}, {"est": -0.845385, "se": 0.09764, "ci_lo": -1.036759, "ci_hi": -0.654011, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 7.7922, "step": 11, "sig": true}, {"est": -0.838031, "se": 0.091728, "ci_lo": -1.017817, "ci_hi": -0.658245, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 7.8405, "step": 12, "sig": true}, {"est": -0.869424, "se": 0.090201, "ci_lo": -1.046218, "ci_hi": -0.69263, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 11.389, "step": 13, "sig": true}, {"est": -0.871711, "se": 0.089521, "ci_lo": -1.047172, "ci_hi": -0.69625, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 11.4318, "step": 14, "sig": true}, {"est": -0.875066, "se": 0.087945, "ci_lo": -1.047438, "ci_hi": -0.702693, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 11.4721, "step": 15, "sig": true}, {"est": -0.872718, "se": 0.084844, "ci_lo": -1.039011, "ci_hi": -0.706424, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 11.4823, "step": 16, "sig": true}, {"est": -0.864505, "se": 0.080878, "ci_lo": -1.023026, "ci_hi": -0.705984, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 11.585, "step": 17, "sig": true}, {"est": -0.863123, "se": 0.078446, "ci_lo": -1.016878, "ci_hi": -0.709368, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 11.5899, "step": 18, "sig": true}, {"est": -0.864931, "se": 0.077998, "ci_lo": -1.017807, "ci_hi": -0.712056, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 11.6365, "step": 19, "sig": true}, {"est": -0.818955, "se": 0.068233, "ci_lo": -0.952692, "ci_hi": -0.685219, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 13.1168, "step": 20, "sig": true}], "changepoints": {"effect": {"position": 20, "type": "stabilized"}, "significance": null, "heterogeneity": null}, "stability_class": "Never Stabilized"}, {"review_id": "CD011689", "analysis_name": "Shivering", "k": 31, "studies": [{"idx": 1, "yi": 0.0, "sei": 0.966074}, {"idx": 2, "yi": 0.647477, "sei": 0.074556}, {"idx": 3, "yi": 3.7612, "sei": 1.428295}, {"idx": 4, "yi": 2.544912, "sei": 0.266589}, {"idx": 5, "yi": 2.44999, "sei": 1.473538}, {"idx": 6, "yi": 0.922789, "sei": 0.14722}, {"idx": 7, "yi": 1.104958, "sei": 0.280698}, {"idx": 8, "yi": 0.829388, "sei": 0.264905}, {"idx": 9, "yi": 2.058388, "sei": 1.050669}, {"idx": 10, "yi": 3.238678, "sei": 0.715571}, {"idx": 11, "yi": 1.871802, "sei": 0.745986}, {"idx": 12, "yi": 2.780411, "sei": 0.370091}, {"idx": 13, "yi": 1.246538, "sei": 0.050462}, {"idx": 14, "yi": 0.207639, "sei": 0.34557}, {"idx": 15, "yi": 0.596566, "sei": 0.294126}, {"idx": 16, "yi": 0.693147, "sei": 0.570077}, {"idx": 17, "yi": 0.358846, "sei": 0.1193}, {"idx": 18, "yi": 0.485508, "sei": 0.319248}, {"idx": 19, "yi": 0.6388, "sei": 0.207648}, {"idx": 20, "yi": 1.029619, "sei": 0.265469}, {"idx": 21, "yi": 5.081404, "sei": 1.415838}, {"idx": 22, "yi": 1.401476, "sei": 0.166126}, {"idx": 23, "yi": 1.203973, "sei": 0.319716}, {"idx": 24, "yi": 3.295837, "sei": 0.998499}, {"idx": 25, "yi": 1.94591, "sei": 1.498805}, {"idx": 26, "yi": 3.113515, "sei": 0.348687}, {"idx": 27, "yi": 2.079442, "sei": 0.7437}, {"idx": 28, "yi": 1.098612, "sei": 1.609239}, {"idx": 29, "yi": 1.871802, "sei": 0.732737}, {"idx": 30, "yi": 1.360977, "sei": 0.338043}, {"idx": 31, "yi": 1.412275, "sei": 0.288341}], "cumulative": [{"est": 0.0, "se": 0.9660743955112487, "ci_lo": -1.8935058152020474, "ci_hi": 1.8935058152020474, "pval": 1.0000003494322027, "tau2": 0.0, "I2": 0.0, "Q": 0.0, "step": 1, "sig": false}, {"est": 0.643644, "se": 0.074335, "ci_lo": 0.497946, "ci_hi": 0.789341, "pval": 0.0, "tau2": 0.0, "I2": 0.0, "Q": 0.4465, "step": 2, "sig": true}, {"est": 1.027721, "se": 0.745428, "ci_lo": -0.433318, "ci_hi": 2.48876, "pval": 0.16798758, "tau2": 1.030838, "I2": 61.5, "Q": 5.1979, "step": 3, "sig": false}, {"est": 1.569129, "se": 0.743813, "ci_lo": 0.111254, "ci_hi": 3.027003, "pval": 0.03489501, "tau2": 1.689361, "I2": 94.2, "Q": 51.9834, "step": 4, "sig": true}, {"est": 1.677184, "se": 0.689303, "ci_lo": 0.32615, "ci_hi": 3.028219, "pval": 0.01496775, "tau2": 1.650207, "I2": 92.5, "Q": 53.2521, "step": 5, "sig": true}, {"est": 1.391639, "se": 0.37334, "ci_lo": 0.659893, "ci_hi": 2.123386, "pval": 0.00019342, "tau2": 0.494568, "I2": 90.7, "Q": 53.8892, "step": 6, "sig": true}, {"est": 1.322579, "se": 0.31154, "ci_lo": 0.711961, "ci_hi": 1.933197, "pval": 2.184e-05, "tau2": 0.414142, "I2": 89.1, "Q": 54.8887, "step": 7, "sig": true}, {"est": 1.228943, "se": 0.263993, "ci_lo": 0.711517, "ci_hi": 1.74637, "pval": 3.24e-06, "tau2": 0.345052, "I2": 87.2, "Q": 54.8888, "step": 8, "sig": true}, {"est": 1.26684, "se": 0.25765, "ci_lo": 0.761847, "ci_hi": 1.771833, "pval": 8.8e-07, "tau2": 0.344317, "I2": 85.8, "Q": 56.2482, "step": 9, "sig": true}, {"est": 1.429792, "se": 0.264915, "ci_lo": 0.910559, "ci_hi": 1.949025, "pval": 7e-08, "tau2": 0.408723, "I2": 86.7, "Q": 67.4469, "step": 10, "sig": true}, {"est": 1.45929, "se": 0.255426, "ci_lo": 0.958654, "ci_hi": 1.959925, "pval": 1e-08, "tau2": 0.407202, "I2": 85.6, "Q": 69.301, "step": 11, "sig": true}, {"est": 1.630917, "se": 0.26866, "ci_lo": 1.104343, "ci_hi": 2.157491, "pval": 0.0, "tau2": 0.541712, "I2": 88.5, "Q": 95.5447, "step": 12, "sig": true}, {"est": 1.507088, "se": 0.190459, "ci_lo": 1.133788, "ci_hi": 1.880387, "pval": 0.0, "tau2": 0.260183, "I2": 89.5, "Q": 114.177, "step": 13, "sig": true}, {"est": 1.396171, "se": 0.183638, "ci_lo": 1.036241, "ci_hi": 1.756102, "pval": 0.0, "tau2": 0.266669, "I2": 89.2, "Q": 120.8502, "step": 14, "sig": true}, {"est": 1.324482, "se": 0.174019, "ci_lo": 0.983406, "ci_hi": 1.665558, "pval": 0.0, "tau2": 0.260858, "I2": 88.7, "Q": 123.6721, "step": 15, "sig": true}, {"est": 1.292301, "se": 0.168769, "ci_lo": 0.961515, "ci_hi": 1.623088, "pval": 0.0, "tau2": 0.256997, "I2": 87.9, "Q": 124.1462, "step": 16, "sig": true}, {"est": 1.209876, "se": 0.164943, "ci_lo": 0.886588, "ci_hi": 1.533164, "pval": 0.0, "tau2": 0.276139, "I2": 89.9, "Q": 157.782, "step": 17, "sig": true}, {"est": 1.160239, "se": 0.158561, "ci_lo": 0.849459, "ci_hi": 1.471019, "pval": 0.0, "tau2": 0.272701, "I2": 89.4, "Q": 160.5319, "step": 18, "sig": true}, {"est": 1.11863, "se": 0.150289, "ci_lo": 0.824064, "ci_hi": 1.413196, "pval": 0.0, "tau2": 0.261925, "I2": 89.0, "Q": 163.6611, "step": 19, "sig": true}, {"est": 1.11011, "se": 0.143299, "ci_lo": 0.829245, "ci_hi": 1.390976, "pval": 0.0, "tau2": 0.251907, "I2": 88.4, "Q": 163.6727, "step": 20, "sig": true}, {"est": 1.15053, "se": 0.145252, "ci_lo": 0.865836, "ci_hi": 1.435224, "pval": 0.0, "tau2": 0.26432, "I2": 88.4, "Q": 171.9723, "step": 21, "sig": true}, {"est": 1.16344, "se": 0.137831, "ci_lo": 0.893292, "ci_hi": 1.433588, "pval": 0.0, "tau2": 0.252413, "I2": 88.2, "Q": 177.4599, "step": 22, "sig": true}, {"est": 1.16354, "se": 0.13307, "ci_lo": 0.902723, "ci_hi": 1.424357, "pval": 0.0, "tau2": 0.246435, "I2": 87.6, "Q": 177.7848, "step": 23, "sig": true}, {"est": 1.195855, "se": 0.133346, "ci_lo": 0.934496, "ci_hi": 1.457214, "pval": 0.0, "tau2": 0.252535, "I2": 87.4, "Q": 182.9611, "step": 24, "sig": true}, {"est": 1.200675, "se": 0.132638, "ci_lo": 0.940705, "ci_hi": 1.460645, "pval": 0.0, "tau2": 0.251328, "I2": 86.9, "Q": 183.3381, "step": 25, "sig": true}, {"est": 1.305328, "se": 0.138654, "ci_lo": 1.033567, "ci_hi": 1.57709, "pval": 0.0, "tau2": 0.300866, "I2": 88.6, "Q": 218.8446, "step": 26, "sig": true}, {"est": 1.322508, "se": 0.137183, "ci_lo": 1.053629, "ci_hi": 1.591388, "pval": 0.0, "tau2": 0.301245, "I2": 88.2, "Q": 220.7729, "step": 27, "sig": true}, {"est": 1.32043, "se": 0.136439, "ci_lo": 1.053009, "ci_hi": 1.587852, "pval": 0.0, "tau2": 0.299474, "I2": 87.8, "Q": 220.7739, "step": 28, "sig": true}, {"est": 1.332189, "se": 0.134834, "ci_lo": 1.067915, "ci_hi": 1.596464, "pval": 0.0, "tau2": 0.298799, "I2": 87.4, "Q": 222.0359, "step": 29, "sig": true}, {"est": 1.331581, "se": 0.131118, "ci_lo": 1.074589, "ci_hi": 1.588573, "pval": 0.0, "tau2": 0.293627, "I2": 87.0, "Q": 222.8762, "step": 30, "sig": true}, {"est": 1.333162, "se": 0.127311, "ci_lo": 1.083633, "ci_hi": 1.582691, "pval": 0.0, "tau2": 0.287956, "I2": 86.6, "Q": 224.4111, "step": 31, "sig": true}], "changepoints": {"effect": {"position": 31, "type": "stabilized"}, "significance": null, "heterogeneity": {"position": 6, "type": "spike"}}, "stability_class": "Never Stabilized"}, {"review_id": "CD011044", "analysis_name": "Response rates", "k": 26, "studies": [{"idx": 1, "yi": 1.048311, "sei": 0.48377}, {"idx": 2, "yi": 0.252364, "sei": 0.280104}, {"idx": 3, "yi": 0.190415, "sei": 0.426028}, {"idx": 4, "yi": -0.231111, "sei": 0.863532}, {"idx": 5, "yi": 0.435443, "sei": 0.219238}, {"idx": 6, "yi": 0.381368, "sei": 0.886061}, {"idx": 7, "yi": 0.597837, "sei": 1.185113}, {"idx": 8, "yi": 0.213093, "sei": 0.43542}, {"idx": 9, "yi": 0.431566, "sei": 0.205924}, {"idx": 10, "yi": 0.052843, "sei": 0.265118}, {"idx": 11, "yi": 0.216874, "sei": 0.37075}, {"idx": 12, "yi": 1.316309, "sei": 0.328053}, {"idx": 13, "yi": 1.8506, "sei": 1.447317}, {"idx": 14, "yi": 1.429001, "sei": 0.529943}, {"idx": 15, "yi": 0.178248, "sei": 0.511189}, {"idx": 16, "yi": 0.792803, "sei": 0.192488}, {"idx": 17, "yi": 0.312723, "sei": 0.452151}, {"idx": 18, "yi": 0.476924, "sei": 0.396854}, {"idx": 19, "yi": 0.405465, "sei": 0.472237}, {"idx": 20, "yi": 1.191599, "sei": 0.196945}, {"idx": 21, "yi": 0.512437, "sei": 0.287927}, {"idx": 22, "yi": 0.663294, "sei": 0.436209}, {"idx": 23, "yi": -0.279485, "sei": 0.475169}, {"idx": 24, "yi": 2.772589, "sei": 0.997896}, {"idx": 25, "yi": 1.037988, "sei": 1.128107}, {"idx": 26, "yi": 0.738398, "sei": 0.258317}], "cumulative": [{"est": 1.0483114840557424, "se": 0.4837700980158989, "ci_lo": 0.10012209194458055, "ci_hi": 1.996500876166904, "pval": 0.030237627921694266, "tau2": 0.0, "I2": 0.0, "Q": 0.0, "step": 1, "sig": true}, {"est": 0.552608, "se": 0.385787, "ci_lo": -0.203535, "ci_hi": 1.308752, "pval": 0.15202449, "tau2": 0.16052, "I2": 50.7, "Q": 2.0274, "step": 2, "sig": false}, {"est": 0.402666, "se": 0.232279, "ci_lo": -0.0526, "ci_hi": 0.857933, "pval": 0.08299827, "tau2": 0.023756, "I2": 13.5, "Q": 2.3126, "step": 3, "sig": false}, {"est": 0.353386, "se": 0.204683, "ci_lo": -0.047792, "ci_hi": 0.754565, "pval": 0.08425599, "tau2": 0.0, "I2": 0.0, "Q": 2.798, "step": 4, "sig": false}, {"est": 0.391601, "se": 0.149614, "ci_lo": 0.098358, "ci_hi": 0.684844, "pval": 0.00885995, "tau2": 0.0, "I2": 0.0, "Q": 2.8729, "step": 5, "sig": true}, {"est": 0.391317, "se": 0.147525, "ci_lo": 0.102168, "ci_hi": 0.680467, "pval": 0.0079889, "tau2": 0.0, "I2": 0.0, "Q": 2.873, "step": 6, "sig": true}, {"est": 0.394469, "se": 0.146395, "ci_lo": 0.107533, "ci_hi": 0.681404, "pval": 0.00704866, "tau2": 0.0, "I2": 0.0, "Q": 2.9029, "step": 7, "sig": true}, {"est": 0.376048, "se": 0.138762, "ci_lo": 0.104074, "ci_hi": 0.648022, "pval": 0.00672817, "tau2": 0.0, "I2": 0.0, "Q": 3.0588, "step": 8, "sig": true}, {"est": 0.393385, "se": 0.115074, "ci_lo": 0.16784, "ci_hi": 0.61893, "pval": 0.0006297, "tau2": 0.0, "I2": 0.0, "Q": 3.1088, "step": 9, "sig": true}, {"est": 0.339398, "se": 0.105559, "ci_lo": 0.132502, "ci_hi": 0.546294, "pval": 0.0013035, "tau2": 0.0, "I2": 0.0, "Q": 4.4972, "step": 10, "sig": true}, {"est": 0.330211, "se": 0.101525, "ci_lo": 0.131223, "ci_hi": 0.529199, "pval": 0.00114398, "tau2": 0.0, "I2": 0.0, "Q": 4.5982, "step": 11, "sig": true}, {"est": 0.419412, "se": 0.109813, "ci_lo": 0.204178, "ci_hi": 0.634646, "pval": 0.00013386, "tau2": 0.02015, "I2": 14.4, "Q": 12.844, "step": 12, "sig": true}, {"est": 0.427452, "se": 0.109296, "ci_lo": 0.213233, "ci_hi": 0.641672, "pval": 9.196e-05, "tau2": 0.019788, "I2": 13.2, "Q": 13.8215, "step": 13, "sig": true}, {"est": 0.475571, "se": 0.119525, "ci_lo": 0.241302, "ci_hi": 0.70984, "pval": 6.928e-05, "tau2": 0.04491, "I2": 24.9, "Q": 17.3102, "step": 14, "sig": true}, {"est": 0.459774, "se": 0.112859, "ci_lo": 0.23857, "ci_hi": 0.680979, "pval": 4.626e-05, "tau2": 0.035885, "I2": 20.4, "Q": 17.594, "step": 15, "sig": true}, {"est": 0.509411, "se": 0.10684, "ci_lo": 0.300006, "ci_hi": 0.718817, "pval": 1.86e-06, "tau2": 0.041869, "I2": 25.8, "Q": 20.2196, "step": 16, "sig": true}, {"est": 0.500853, "se": 0.100984, "ci_lo": 0.302923, "ci_hi": 0.698783, "pval": 7.1e-07, "tau2": 0.033921, "I2": 21.6, "Q": 20.4079, "step": 17, "sig": true}, {"est": 0.500076, "se": 0.094408, "ci_lo": 0.315037, "ci_hi": 0.685115, "pval": 1.2e-07, "tau2": 0.024966, "I2": 16.7, "Q": 20.4129, "step": 18, "sig": true}, {"est": 0.497592, "se": 0.089224, "ci_lo": 0.322713, "ci_hi": 0.672472, "pval": 2e-08, "tau2": 0.017353, "I2": 12.0, "Q": 20.4555, "step": 19, "sig": true}, {"est": 0.564694, "se": 0.104918, "ci_lo": 0.359054, "ci_hi": 0.770333, "pval": 7e-08, "tau2": 0.072356, "I2": 38.7, "Q": 30.998, "step": 20, "sig": true}, {"est": 0.563164, "se": 0.098114, "ci_lo": 0.37086, "ci_hi": 0.755467, "pval": 1e-08, "tau2": 0.0622, "I2": 35.7, "Q": 31.0828, "step": 21, "sig": true}, {"est": 0.568313, "se": 0.093949, "ci_lo": 0.384172, "ci_hi": 0.752453, "pval": 0.0, "tau2": 0.055013, "I2": 32.5, "Q": 31.1076, "step": 22, "sig": true}, {"est": 0.539477, "se": 0.09593, "ci_lo": 0.351453, "ci_hi": 0.7275, "pval": 2e-08, "tau2": 0.065942, "I2": 36.1, "Q": 34.4246, "step": 23, "sig": true}, {"est": 0.55641, "se": 0.101177, "ci_lo": 0.358103, "ci_hi": 0.754718, "pval": 4e-08, "tau2": 0.085723, "I2": 41.4, "Q": 39.2441, "step": 24, "sig": true}, {"est": 0.560377, "se": 0.099487, "ci_lo": 0.365383, "ci_hi": 0.755371, "pval": 2e-08, "tau2": 0.080925, "I2": 39.1, "Q": 39.4032, "step": 25, "sig": true}, {"est": 0.572497, "se": 0.09374, "ci_lo": 0.388766, "ci_hi": 0.756227, "pval": 0.0, "tau2": 0.071647, "I2": 37.1, "Q": 39.7152, "step": 26, "sig": true}], "changepoints": {"effect": {"position": 26, "type": "stabilized"}, "significance": null, "heterogeneity": {"position": 20, "type": "spike"}}, "stability_class": "Never Stabilized"}, {"review_id": "CD007310", "analysis_name": "Complications", "k": 7, "studies": [{"idx": 1, "yi": 0.703404, "sei": 1.216319}, {"idx": 2, "yi": 1.088662, "sei": 1.626858}, {"idx": 3, "yi": 0.010256, "sei": 1.406915}, {"idx": 4, "yi": 0.297939, "sei": 0.750199}, {"idx": 5, "yi": -0.01005, "sei": 1.407063}, {"idx": 6, "yi": 0.010256, "sei": 1.406915}, {"idx": 7, "yi": -0.01005, "sei": 1.407063}], "cumulative": [{"est": 0.7034039001148654, "se": 1.2163185502042106, "ci_lo": -1.6805804582853874, "ci_hi": 3.0873882585151184, "pval": 0.5630575233702189, "tau2": 0.0, "I2": 0.0, "Q": 0.0, "step": 1, "sig": false}, {"est": 0.84154, "se": 0.974153, "ci_lo": -1.0678, "ci_hi": 2.75088, "pval": 0.38766011, "tau2": 0.0, "I2": 0.0, "Q": 0.036, "step": 2, "sig": false}, {"est": 0.572154, "se": 0.800905, "ci_lo": -0.997621, "ci_hi": 2.141928, "pval": 0.47498968, "tau2": 0.0, "I2": 0.0, "Q": 0.2719, "step": 3, "sig": false}, {"est": 0.426091, "se": 0.54752, "ci_lo": -0.647047, "ci_hi": 1.49923, "pval": 0.43643832, "tau2": 0.0, "I2": 0.0, "Q": 0.3344, "step": 4, "sig": false}, {"est": 0.368737, "se": 0.510251, "ci_lo": -0.631354, "ci_hi": 1.368828, "pval": 0.46988947, "tau2": 0.0, "I2": 0.0, "Q": 0.4178, "step": 5, "sig": false}, {"est": 0.327066, "se": 0.479678, "ci_lo": -0.613103, "ci_hi": 1.267236, "pval": 0.4953367, "tau2": 0.0, "I2": 0.0, "Q": 0.4752, "step": 6, "sig": false}, {"est": 0.291967, "se": 0.454021, "ci_lo": -0.597914, "ci_hi": 1.181847, "pval": 0.52017921, "tau2": 0.0, "I2": 0.0, "Q": 0.5266, "step": 7, "sig": false}], "changepoints": {"effect": {"position": 7, "type": "stabilized"}, "significance": null, "heterogeneity": null}, "stability_class": "Never Stabilized"}, {"review_id": "CD005566", "analysis_name": "Infectious complications", "k": 28, "studies": [{"idx": 1, "yi": 0.510826, "sei": 0.715245}, {"idx": 2, "yi": 0.405465, "sei": 0.906388}, {"idx": 3, "yi": 0.287682, "sei": 0.737098}, {"idx": 4, "yi": -1.609438, "sei": 1.518124}, {"idx": 5, "yi": -0.446201, "sei": 0.082628}, {"idx": 6, "yi": 0.693147, "sei": 1.208918}, {"idx": 7, "yi": 0.008298, "sei": 0.317877}, {"idx": 8, "yi": 0.405465, "sei": 0.905372}, {"idx": 9, "yi": -0.182322, "sei": 0.90368}, {"idx": 10, "yi": -0.282348, "sei": 0.40141}, {"idx": 11, "yi": 0.641854, "sei": 1.203591}, {"idx": 12, "yi": 0.693147, "sei": 1.187029}, {"idx": 13, "yi": 0.693147, "sei": 0.593515}, {"idx": 14, "yi": 0.556288, "sei": 0.888847}, {"idx": 15, "yi": -1.297463, "sei": 1.621783}, {"idx": 16, "yi": 0.405465, "sei": 0.887013}, {"idx": 17, "yi": -1.098613, "sei": 1.624883}, {"idx": 18, "yi": -1.098613, "sei": 1.12892}, {"idx": 19, "yi": 0.080042, "sei": 0.959082}, {"idx": 20, "yi": -0.356675, "sei": 0.419743}, {"idx": 21, "yi": -0.693147, "sei": 0.80621}, {"idx": 22, "yi": -1.098613, "sei": 1.56345}, {"idx": 23, "yi": -0.035092, "sei": 0.964245}, {"idx": 24, "yi": -0.111225, "sei": 0.745112}, {"idx": 25, "yi": 0.693147, "sei": 1.197197}, {"idx": 26, "yi": -0.059271, "sei": 0.060382}, {"idx": 27, "yi": -0.656106, "sei": 1.217136}, {"idx": 28, "yi": -1.098613, "sei": 1.576309}], "cumulative": [{"est": 0.5108258237659706, "se": 0.7152449381153576, "ci_lo": -0.8910542549401304, "ci_hi": 1.9127059024720716, "pval": 0.4751050622203734, "tau2": 0.0, "I2": 0.0, "Q": 0.0, "step": 1, "sig": false}, {"est": 0.470394, "se": 0.561481, "ci_lo": -0.630109, "ci_hi": 1.570897, "pval": 0.40215749, "tau2": 0.0, "I2": 0.0, "Q": 0.0083, "step": 2, "sig": false}, {"est": 0.403304, "se": 0.446654, "ci_lo": -0.472138, "ci_hi": 1.278746, "pval": 0.36655528, "tau2": 0.0, "I2": 0.0, "Q": 0.0472, "step": 3, "sig": false}, {"est": 0.242956, "se": 0.428493, "ci_lo": -0.59689, "ci_hi": 1.082803, "pval": 0.57071269, "tau2": 0.0, "I2": 0.0, "Q": 1.6649, "step": 4, "sig": false}, {"est": -0.375019, "se": 0.139669, "ci_lo": -0.64877, "ci_hi": -0.101268, "pval": 0.00725187, "tau2": 0.014938, "I2": 3.8, "Q": 4.1589, "step": 5, "sig": true}, {"est": -0.414698, "se": 0.083396, "ci_lo": -0.578154, "ci_hi": -0.251242, "pval": 6.6e-07, "tau2": 0.000437, "I2": 0.1, "Q": 5.0052, "step": 6, "sig": true}, {"est": -0.277667, "se": 0.144868, "ci_lo": -0.561608, "ci_hi": 0.006274, "pval": 0.05527735, "tau2": 0.022886, "I2": 10.2, "Q": 6.6823, "step": 7, "sig": false}, {"est": -0.298892, "se": 0.1252, "ci_lo": -0.544284, "ci_hi": -0.053499, "pval": 0.01697218, "tau2": 0.014047, "I2": 6.0, "Q": 7.4497, "step": 8, "sig": true}, {"est": -0.38319, "se": 0.077864, "ci_lo": -0.535803, "ci_hi": -0.230578, "pval": 8.6e-07, "tau2": 0.0, "I2": 0.0, "Q": 7.4995, "step": 9, "sig": true}, {"est": -0.379534, "se": 0.076439, "ci_lo": -0.529354, "ci_hi": -0.229714, "pval": 6.9e-07, "tau2": 0.0, "I2": 0.0, "Q": 7.5603, "step": 10, "sig": true}, {"est": -0.375431, "se": 0.076285, "ci_lo": -0.524949, "ci_hi": -0.225912, "pval": 8.6e-07, "tau2": 0.0, "I2": 0.0, "Q": 8.2776, "step": 11, "sig": true}, {"est": -0.371036, "se": 0.076128, "ci_lo": -0.520246, "ci_hi": -0.221825, "pval": 1.1e-06, "tau2": 0.0, "I2": 0.0, "Q": 9.0846, "step": 12, "sig": true}, {"est": -0.307641, "se": 0.093407, "ci_lo": -0.490719, "ci_hi": -0.124563, "pval": 0.00098943, "tau2": 0.004744, "I2": 2.0, "Q": 12.2475, "step": 13, "sig": true}, {"est": -0.293156, "se": 0.094592, "ci_lo": -0.478557, "ci_hi": -0.107755, "pval": 0.00194089, "tau2": 0.00531, "I2": 2.2, "Q": 13.2884, "step": 14, "sig": true}, {"est": -0.34933, "se": 0.075158, "ci_lo": -0.496639, "ci_hi": -0.202022, "pval": 3.36e-06, "tau2": 0.0, "I2": 0.0, "Q": 13.6309, "step": 15, "sig": true}, {"est": -0.34395, "se": 0.074889, "ci_lo": -0.490733, "ci_hi": -0.197167, "pval": 4.38e-06, "tau2": 0.0, "I2": 0.0, "Q": 14.3498, "step": 16, "sig": true}, {"est": -0.34555, "se": 0.07481, "ci_lo": -0.492177, "ci_hi": -0.198922, "pval": 3.86e-06, "tau2": 0.0, "I2": 0.0, "Q": 14.5651, "step": 17, "sig": true}, {"est": -0.348842, "se": 0.074646, "ci_lo": -0.495148, "ci_hi": -0.202536, "pval": 2.97e-06, "tau2": 0.0, "I2": 0.0, "Q": 15.0081, "step": 18, "sig": true}, {"est": -0.34626, "se": 0.074421, "ci_lo": -0.492125, "ci_hi": -0.200395, "pval": 3.28e-06, "tau2": 0.0, "I2": 0.0, "Q": 15.2069, "step": 19, "sig": true}, {"est": -0.346577, "se": 0.073278, "ci_lo": -0.490202, "ci_hi": -0.202952, "pval": 2.25e-06, "tau2": 0.0, "I2": 0.0, "Q": 15.2075, "step": 20, "sig": true}, {"est": -0.349417, "se": 0.072977, "ci_lo": -0.492452, "ci_hi": -0.206381, "pval": 1.69e-06, "tau2": 0.0, "I2": 0.0, "Q": 15.3907, "step": 21, "sig": true}, {"est": -0.351046, "se": 0.072898, "ci_lo": -0.493926, "ci_hi": -0.208166, "pval": 1.47e-06, "tau2": 0.0, "I2": 0.0, "Q": 15.6199, "step": 22, "sig": true}, {"est": -0.34925, "se": 0.07269, "ci_lo": -0.491723, "ci_hi": -0.206777, "pval": 1.55e-06, "tau2": 0.0, "I2": 0.0, "Q": 15.7266, "step": 23, "sig": true}, {"est": -0.347006, "se": 0.072347, "ci_lo": -0.488806, "ci_hi": -0.205206, "pval": 1.62e-06, "tau2": 0.0, "I2": 0.0, "Q": 15.8277, "step": 24, "sig": true}, {"est": -0.343221, "se": 0.072215, "ci_lo": -0.484763, "ci_hi": -0.201679, "pval": 2.01e-06, "tau2": 0.0, "I2": 0.0, "Q": 16.5798, "step": 25, "sig": true}, {"est": -0.184131, "se": 0.056812, "ci_lo": -0.295483, "ci_hi": -0.072779, "pval": 0.00119102, "tau2": 0.00263, "I2": 2.6, "Q": 25.679, "step": 26, "sig": true}, {"est": -0.1768, "se": 0.046289, "ci_lo": -0.267527, "ci_hi": -0.086073, "pval": 0.00013379, "tau2": 0.0, "I2": 0.0, "Q": 25.8343, "step": 27, "sig": true}, {"est": -0.177594, "se": 0.046269, "ci_lo": -0.268282, "ci_hi": -0.086907, "pval": 0.00012394, "tau2": 0.0, "I2": 0.0, "Q": 26.176, "step": 28, "sig": true}], "changepoints": {"effect": {"position": 28, "type": "stabilized"}, "significance": {"position": 6, "type": "flipped"}, "heterogeneity": {"position": 5, "type": "spike"}}, "stability_class": "Never Stabilized"}, {"review_id": "CD004736", "analysis_name": "Maternal anaemia at term (Hb less than 110 g/L at 37 weeks' gestation or more) (ALL)", "k": 14, "studies": [{"idx": 1, "yi": -0.738268, "sei": 0.159575}, {"idx": 2, "yi": -2.260407, "sei": 1.033879}, {"idx": 3, "yi": -1.905139, "sei": 0.322903}, {"idx": 4, "yi": -0.285664, "sei": 0.383402}, {"idx": 5, "yi": -1.546144, "sei": 0.628962}, {"idx": 6, "yi": -2.835878, "sei": 1.431049}, {"idx": 7, "yi": -3.671472, "sei": 1.007253}, {"idx": 8, "yi": -0.058167, "sei": 0.109757}, {"idx": 9, "yi": -0.797768, "sei": 0.307534}, {"idx": 10, "yi": -3.36697, "sei": 1.430152}, {"idx": 11, "yi": -0.530687, "sei": 0.136298}, {"idx": 12, "yi": -1.755979, "sei": 0.41978}, {"idx": 13, "yi": -2.625577, "sei": 1.425634}, {"idx": 14, "yi": -1.901456, "sei": 1.026589}], "cumulative": [{"est": -0.7382679850712522, "se": 0.15957468997884078, "ci_lo": -1.0510343774297801, "ci_hi": -0.4255015927127243, "pval": 3.7234259642193734e-06, "tau2": 0.0, "I2": 0.0, "Q": 0.0, "step": 1, "sig": true}, {"est": -1.156583, "se": 0.679519, "ci_lo": -2.48844, "ci_hi": 0.175274, "pval": 0.08874387, "tau2": 0.611269, "I2": 52.8, "Q": 2.1171, "step": 2, "sig": false}, {"est": -1.446862, "se": 0.522616, "ci_lo": -2.47119, "ci_hi": -0.422535, "pval": 0.00563164, "tau2": 0.591317, "I2": 83.4, "Q": 12.0304, "step": 3, "sig": true}, {"est": -1.114208, "se": 0.399128, "ci_lo": -1.8965, "ci_hi": -0.331917, "pval": 0.00524487, "tau2": 0.446676, "I2": 80.0, "Q": 15.0131, "step": 4, "sig": true}, {"est": -1.173781, "se": 0.348933, "ci_lo": -1.857689, "ci_hi": -0.489872, "pval": 0.00076856, "tau2": 0.392437, "I2": 75.0, "Q": 16.0024, "step": 5, "sig": true}, {"est": -1.256905, "se": 0.345081, "ci_lo": -1.933263, "ci_hi": -0.580547, "pval": 0.00027023, "tau2": 0.407446, "I2": 71.8, "Q": 17.754, "step": 6, "sig": true}, {"est": -1.505479, "se": 0.37423, "ci_lo": -2.238969, "ci_hi": -0.771989, "pval": 5.752e-05, "tau2": 0.578544, "I2": 75.9, "Q": 24.9372, "step": 7, "sig": true}, {"est": -1.22843, "se": 0.336689, "ci_lo": -1.88834, "ci_hi": -0.56852, "pval": 0.00026378, "tau2": 0.579591, "I2": 87.4, "Q": 55.6107, "step": 8, "sig": true}, {"est": -1.139318, "se": 0.294016, "ci_lo": -1.715588, "ci_hi": -0.563047, "pval": 0.00010665, "tau2": 0.498703, "I2": 85.9, "Q": 56.781, "step": 9, "sig": true}, {"est": -1.22419, "se": 0.295064, "ci_lo": -1.802515, "ci_hi": -0.645864, "pval": 3.343e-05, "tau2": 0.52652, "I2": 85.2, "Q": 60.8524, "step": 10, "sig": true}, {"est": -1.037671, "se": 0.229981, "ci_lo": -1.488433, "ci_hi": -0.586909, "pval": 6.43e-06, "tau2": 0.333066, "I2": 83.6, "Q": 60.9328, "step": 11, "sig": true}, {"est": -1.122807, "se": 0.226943, "ci_lo": -1.567615, "ci_hi": -0.677999, "pval": 7.5e-07, "tau2": 0.36696, "I2": 84.2, "Q": 69.6837, "step": 12, "sig": true}, {"est": -1.157461, "se": 0.225843, "ci_lo": -1.600114, "ci_hi": -0.714808, "pval": 3e-07, "tau2": 0.372744, "I2": 83.3, "Q": 71.8379, "step": 13, "sig": true}, {"est": -1.184216, "se": 0.222337, "ci_lo": -1.619998, "ci_hi": -0.748435, "pval": 1e-07, "tau2": 0.374732, "I2": 82.3, "Q": 73.6004, "step": 14, "sig": true}], "changepoints": {"effect": {"position": 14, "type": "stabilized"}, "significance": null, "heterogeneity": {"position": 3, "type": "spike"}}, "stability_class": "Never Stabilized"}, {"review_id": "CD014844", "analysis_name": "Uterine infection", "k": 6, "studies": [{"idx": 1, "yi": -0.523744, "sei": 0.244972}, {"idx": 2, "yi": -0.634788, "sei": 0.45169}, {"idx": 3, "yi": 0.133531, "sei": 0.50118}, {"idx": 4, "yi": -1.270333, "sei": 1.111059}, {"idx": 5, "yi": 0.306525, "sei": 0.231249}, {"idx": 6, "yi": -1.63413, "sei": 1.533129}], "cumulative": [{"est": -0.5237437040342575, "se": 0.24497220947362053, "ci_lo": -1.0038892346025539, "ci_hi": -0.04359817346596129, "pval": 0.03251890002812319, "tau2": 0.0, "I2": 0.0, "Q": 0.0, "step": 1, "sig": true}, {"est": -0.548982, "se": 0.215341, "ci_lo": -0.97105, "ci_hi": -0.126914, "pval": 0.01079196, "tau2": 0.0, "I2": 0.0, "Q": 0.0467, "step": 2, "sig": true}, {"est": -0.442617, "se": 0.197851, "ci_lo": -0.830405, "ci_hi": -0.05483, "pval": 0.02527803, "tau2": 0.0, "I2": 0.0, "Q": 1.6122, "step": 3, "sig": true}, {"est": -0.468058, "se": 0.194787, "ci_lo": -0.849839, "ci_hi": -0.086276, "pval": 0.01626447, "tau2": 0.0, "I2": 0.0, "Q": 2.1502, "step": 4, "sig": true}, {"est": -0.215539, "se": 0.25514, "ci_lo": -0.715613, "ci_hi": 0.284534, "pval": 0.39822769, "tau2": 0.155898, "I2": 54.1, "Q": 8.7132, "step": 5, "sig": false}, {"est": -0.249679, "se": 0.249517, "ci_lo": -0.738732, "ci_hi": 0.239373, "pval": 0.31699458, "tau2": 0.150874, "I2": 48.2, "Q": 9.6458, "step": 6, "sig": false}], "changepoints": {"effect": {"position": 6, "type": "stabilized"}, "significance": null, "heterogeneity": {"position": 5, "type": "spike"}}, "stability_class": "Never Stabilized"}, {"review_id": "CD002115", "analysis_name": "Number of participants with self-reported improvement in constipation (dichotomous)", "k": 5, "studies": [{"idx": 1, "yi": 0.765468, "sei": 0.292836}, {"idx": 2, "yi": 1.791759, "sei": 0.704527}, {"idx": 3, "yi": 0.655407, "sei": 0.246704}, {"idx": 4, "yi": 1.615303, "sei": 0.499819}, {"idx": 5, "yi": 0.232931, "sei": 0.087413}], "cumulative": [{"est": 0.7654678421395714, "se": 0.2928355685582596, "ci_lo": 0.19151012776538268, "ci_hi": 1.3394255565137603, "pval": 0.008949362235860736, "tau2": 0.0, "I2": 0.0, "Q": 0.0, "step": 1, "sig": true}, {"est": 1.07857, "se": 0.472548, "ci_lo": 0.152377, "ci_hi": 2.004764, "pval": 0.02246223, "tau2": 0.235582, "I2": 44.7, "Q": 1.8094, "step": 2, "sig": true}, {"est": 0.791289, "se": 0.204448, "ci_lo": 0.390572, "ci_hi": 1.192007, "pval": 0.00010871, "tau2": 0.019335, "I2": 13.7, "Q": 2.3188, "step": 3, "sig": true}, {"est": 0.968539, "se": 0.239049, "ci_lo": 0.500003, "ci_hi": 1.437075, "pval": 5.089e-05, "tau2": 0.08414, "I2": 37.7, "Q": 4.819, "step": 4, "sig": true}, {"est": 0.791023, "se": 0.252907, "ci_lo": 0.295325, "ci_hi": 1.28672, "pval": 0.00176179, "tau2": 0.203079, "I2": 74.8, "Q": 15.8973, "step": 5, "sig": true}], "changepoints": {"effect": null, "significance": null, "heterogeneity": null}, "stability_class": "Never Stabilized"}], "reviews_aggregate_only": [{"review_id": "CD000028", "analysis_name": "Cause of cardiovascular mortality", "k": 21, "theta": -0.2945, "p_value": 3e-06, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD000143", "analysis_name": "Extubation failure", "k": 12, "theta": -0.3594, "p_value": 0.091012, "I2": 70.0, "tau2": 0.3053, "has_trajectory": false}, {"review_id": "CD000219", "analysis_name": "Pain", "k": 21, "theta": -0.2367, "p_value": 0.000374, "I2": 35.7, "tau2": 0.0264, "has_trajectory": false}, {"review_id": "CD000478", "analysis_name": "Failure to maintain remission - all trials", "k": 13, "theta": -0.3794, "p_value": 4e-06, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD000547", "analysis_name": "Individual adverse events", "k": 48, "theta": 1.0673, "p_value": 0.0, "I2": 70.7, "tau2": 0.7851, "has_trajectory": false}, {"review_id": "CD001155", "analysis_name": "Alendronate vs Other active agent, Secondary", "k": 59, "theta": -0.1339, "p_value": 0.104703, "I2": 40.5, "tau2": 0.1319, "has_trajectory": false}, {"review_id": "CD001321", "analysis_name": "Symptomatic UTI: culture-verified UTI", "k": 27, "theta": -0.3496, "p_value": 0.000113, "I2": 66.2, "tau2": 0.1057, "has_trajectory": false}, {"review_id": "CD001396", "analysis_name": "Response rates", "k": 30, "theta": 0.8946, "p_value": 0.0, "I2": 28.4, "tau2": 0.0676, "has_trajectory": false}, {"review_id": "CD001431", "analysis_name": "Participation in decision-making - all studies", "k": 61, "theta": -0.023, "p_value": 0.55549, "I2": 64.1, "tau2": 0.0353, "has_trajectory": false}, {"review_id": "CD001533", "analysis_name": "Adverse events", "k": 21, "theta": -0.0658, "p_value": 0.375342, "I2": 16.1, "tau2": 0.0122, "has_trajectory": false}, {"review_id": "CD001552", "analysis_name": "Clinical improvement at long-term follow-up: over 3 months", "k": 3, "theta": 0.743, "p_value": 0.038075, "I2": 79.1, "tau2": 0.2841, "has_trajectory": false}, {"review_id": "CD001703", "analysis_name": "Non-specific low back pain and spine-related leg pain: withdrawals due to adverse events", "k": 21, "theta": 0.824, "p_value": 0.0, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD001797", "analysis_name": "Significant improvement in disability within 6 weeks", "k": 5, "theta": 0.8166, "p_value": 1e-06, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD001909", "analysis_name": "\u2265 50% reduction in seizure frequency (intention-to-treat analysis)", "k": 25, "theta": 0.5526, "p_value": 0.0, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD001920", "analysis_name": "Functional task training compared to other approaches: Adverse events", "k": 4, "theta": 0.2209, "p_value": 0.242255, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD002042", "analysis_name": "Participants exposed to blood transfusion by clinical specialties", "k": 53, "theta": -0.5324, "p_value": 0.0, "I2": 96.3, "tau2": 0.1024, "has_trajectory": false}, {"review_id": "CD002052", "analysis_name": "All\u2010cause mortality until hospital discharge", "k": 3, "theta": -0.2223, "p_value": 0.518218, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD002112", "analysis_name": "Number of children achieving 14 consecutive dry nights by the end of treatment", "k": 21, "theta": 0.2866, "p_value": 6e-06, "I2": 42.2, "tau2": 0.0275, "has_trajectory": false}, {"review_id": "CD002122", "analysis_name": "Adverse effects", "k": 56, "theta": -0.2112, "p_value": 0.061462, "I2": 82.0, "tau2": 0.3445, "has_trajectory": false}, {"review_id": "CD002203", "analysis_name": "Adverse effects of antibiotic treatment", "k": 50, "theta": -0.1308, "p_value": 0.093367, "I2": 38.8, "tau2": 0.104, "has_trajectory": false}, {"review_id": "CD002243", "analysis_name": "28-day all-cause mortality - sensitivity analysis based on methodological quality", "k": 180, "theta": -0.099, "p_value": 0.0, "I2": 25.8, "tau2": 0.0111, "has_trajectory": false}, {"review_id": "CD002290", "analysis_name": "Relapse", "k": 16, "theta": -0.4903, "p_value": 2e-06, "I2": 81.4, "tau2": 0.1187, "has_trajectory": false}, {"review_id": "CD002303", "analysis_name": "Reulceration", "k": 5, "theta": 0.438, "p_value": 2.2e-05, "I2": 57.2, "tau2": 0.0268, "has_trajectory": false}, {"review_id": "CD002971", "analysis_name": "Necrotising enterocolitis", "k": 10, "theta": -0.599, "p_value": 0.00244, "I2": 2.9, "tau2": 0.0126, "has_trajectory": false}, {"review_id": "CD003129", "analysis_name": "Treatment response", "k": 3, "theta": 0.5131, "p_value": 0.001806, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD003216", "analysis_name": "Incidence of pressure ulcers", "k": 4, "theta": -0.2439, "p_value": 0.157659, "I2": 4.2, "tau2": 0.0083, "has_trajectory": false}, {"review_id": "CD003218", "analysis_name": "Proportion of participants with at least 1 adverse event", "k": 5, "theta": 0.5303, "p_value": 0.203311, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD003331", "analysis_name": "All-cause mortality up to 12 months' follow-up", "k": 35, "theta": -0.0756, "p_value": 0.575297, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD003333", "analysis_name": "All-cause mortality", "k": 4, "theta": 0.0043, "p_value": 0.944437, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD003357", "analysis_name": "Live birth rate per woman", "k": 7, "theta": 0.5704, "p_value": 0.011258, "I2": 66.9, "tau2": 0.2212, "has_trajectory": false}, {"review_id": "CD003376", "analysis_name": "Treatment versus reference, secondary", "k": 15, "theta": -0.277, "p_value": 0.204173, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD003414", "analysis_name": "Clinical pregnancy rate per woman", "k": 16, "theta": -0.0898, "p_value": 0.330113, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD003429", "analysis_name": "Adverse events", "k": 6, "theta": 0.5499, "p_value": 0.151044, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD003477", "analysis_name": "Behaviour problems: agitation or aggression", "k": 11, "theta": -0.0477, "p_value": 0.671789, "I2": 31.6, "tau2": 0.0427, "has_trajectory": false}, {"review_id": "CD003511", "analysis_name": "Miscarriage (all trials)", "k": 8, "theta": -0.0984, "p_value": 0.256726, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD003519", "analysis_name": "Breastfeeding 1 month to 4 months post birth", "k": 15, "theta": 0.209, "p_value": 0.000883, "I2": 35.4, "tau2": 0.0166, "has_trajectory": false}, {"review_id": "CD003594", "analysis_name": "Adverse events", "k": 11, "theta": -0.6409, "p_value": 0.113097, "I2": 45.7, "tau2": 0.7249, "has_trajectory": false}, {"review_id": "CD003598", "analysis_name": "Graft loss", "k": 21, "theta": -0.1686, "p_value": 0.004283, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD003743", "analysis_name": "Infection up to discharge from home support or hospital", "k": 6, "theta": -0.998, "p_value": 0.000368, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD003774", "analysis_name": "CMV disease", "k": 42, "theta": -0.8892, "p_value": 0.0, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD003833", "analysis_name": "Vascular events", "k": 4, "theta": -0.3574, "p_value": 0.554862, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD003962", "analysis_name": "Adverse events", "k": 6, "theta": -0.2292, "p_value": 0.175746, "I2": 0.1, "tau2": 0.0002, "has_trajectory": false}, {"review_id": "CD004184", "analysis_name": "Overall adverse events", "k": 7, "theta": -0.1096, "p_value": 0.458594, "I2": 35.9, "tau2": 0.0397, "has_trajectory": false}, {"review_id": "CD004307", "analysis_name": "Smoking cessation (subgrouped by when incentives were provided)", "k": 42, "theta": 0.4196, "p_value": 0.0, "I2": 22.5, "tau2": 0.0343, "has_trajectory": false}, {"review_id": "CD004376", "analysis_name": "Study withdrawals at final follow-up", "k": 104, "theta": -0.0254, "p_value": 0.585073, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD004406", "analysis_name": "Resolution of symptoms post-treatment (ITT analysis)", "k": 6, "theta": 0.1083, "p_value": 0.276638, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD004417", "analysis_name": "Antibiotic use: delayed versus immediate antibiotics", "k": 17, "theta": -3.5277, "p_value": 0.0, "I2": 84.2, "tau2": 0.9622, "has_trajectory": false}, {"review_id": "CD004508", "analysis_name": "Nausea or vomiting, or both (random-effects model)", "k": 6, "theta": -0.062, "p_value": 0.729007, "I2": 66.6, "tau2": 0.1183, "has_trajectory": false}, {"review_id": "CD004661", "analysis_name": "Neonatal death", "k": 12, "theta": -0.0422, "p_value": 0.528025, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD004667", "analysis_name": "Caesarean birth", "k": 16, "theta": -0.0926, "p_value": 0.034096, "I2": 25.1, "tau2": 0.0071, "has_trajectory": false}, {"review_id": "CD004703", "analysis_name": "Serious adverse events", "k": 4, "theta": -0.5376, "p_value": 0.445447, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD004762", "analysis_name": "Relaxation time (seconds)", "k": 5, "theta": -0.326, "p_value": 0.00399, "I2": 79.3, "tau2": 0.036, "has_trajectory": false}, {"review_id": "CD004871", "analysis_name": "Pain (dichotomous data; short-term): subgroup analysis by dosage", "k": 5, "theta": -0.4359, "p_value": 0.004779, "I2": 66.6, "tau2": 0.0768, "has_trajectory": false}, {"review_id": "CD004904", "analysis_name": "Postpartum endometritis", "k": 4, "theta": 0.005, "p_value": 0.988563, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD004925", "analysis_name": "Urine leak and obstruction", "k": 31, "theta": -1.0626, "p_value": 0.0, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD004953", "analysis_name": "Death", "k": 11, "theta": 0.0023, "p_value": 0.987466, "I2": 32.7, "tau2": 0.0631, "has_trajectory": false}, {"review_id": "CD004992", "analysis_name": "Recurrence of pelvic pain", "k": 4, "theta": -1.8427, "p_value": 0.0, "I2": 8.7, "tau2": 0.038, "has_trajectory": false}, {"review_id": "CD005133", "analysis_name": "Adverse events", "k": 39, "theta": -0.1025, "p_value": 0.047561, "I2": 7.4, "tau2": 0.0067, "has_trajectory": false}, {"review_id": "CD005187", "analysis_name": "Death from any cause", "k": 5, "theta": -0.3654, "p_value": 0.0, "I2": 17.5, "tau2": 0.0045, "has_trajectory": false}, {"review_id": "CD005343", "analysis_name": "Surgically-related adverse effects (G3+)", "k": 31, "theta": -0.5631, "p_value": 2.6e-05, "I2": 57.0, "tau2": 0.1491, "has_trajectory": false}, {"review_id": "CD005495", "analysis_name": "Rate of cerebral palsy", "k": 9, "theta": -0.1267, "p_value": 0.536867, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD005582", "analysis_name": "Serious adverse events", "k": 4, "theta": 0.5325, "p_value": 0.40028, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD005595", "analysis_name": "Adverse events", "k": 32, "theta": 0.2041, "p_value": 0.162361, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD005951", "analysis_name": "Death from any cause by day 90", "k": 7, "theta": -0.2514, "p_value": 0.133585, "I2": 34.4, "tau2": 0.0579, "has_trajectory": false}, {"review_id": "CD006023", "analysis_name": "Hypercalcaemia", "k": 18, "theta": -1.2207, "p_value": 0.0, "I2": 49.5, "tau2": 0.2555, "has_trajectory": false}, {"review_id": "CD006027", "analysis_name": "Need for rescue medication", "k": 4, "theta": -1.3969, "p_value": 0.000264, "I2": 71.2, "tau2": 0.3776, "has_trajectory": false}, {"review_id": "CD006124", "analysis_name": "Perioperative complications", "k": 6, "theta": 0.0204, "p_value": 0.94787, "I2": 80.4, "tau2": 0.4487, "has_trajectory": false}, {"review_id": "CD006182", "analysis_name": "Subsequent laparotomy during initial hospitalisation", "k": 4, "theta": 0.8128, "p_value": 0.0, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD006185", "analysis_name": "Regaining independent walking ability", "k": 78, "theta": 0.5409, "p_value": 0.0, "I2": 28.7, "tau2": 0.1663, "has_trajectory": false}, {"review_id": "CD006257", "analysis_name": "Death: any cause", "k": 9, "theta": -0.0901, "p_value": 0.44505, "I2": 22.6, "tau2": 0.0216, "has_trajectory": false}, {"review_id": "CD006404", "analysis_name": "Other adverse events", "k": 112, "theta": -0.0351, "p_value": 0.427331, "I2": 27.5, "tau2": 0.0422, "has_trajectory": false}, {"review_id": "CD006475", "analysis_name": "Sensitivity analysis: eczema by 2 years by definition of allergic disease", "k": 27, "theta": -0.1499, "p_value": 0.01556, "I2": 32.4, "tau2": 0.0271, "has_trajectory": false}, {"review_id": "CD006515", "analysis_name": "Mechanical complications", "k": 5, "theta": 0.2932, "p_value": 0.601258, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD006536", "analysis_name": "All-cause mortality", "k": 43, "theta": -0.1616, "p_value": 0.327888, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD006606", "analysis_name": "Clinical pregnancy \u2013 all studies (odds ratio, random-effects)", "k": 4, "theta": -0.0005, "p_value": 0.999307, "I2": 89.1, "tau2": 0.9385, "has_trajectory": false}, {"review_id": "CD006632", "analysis_name": "Length of hospital stay (days)", "k": 23, "theta": -1.1693, "p_value": 1e-06, "I2": 62.5, "tau2": 0.4923, "has_trajectory": false}, {"review_id": "CD006689", "analysis_name": "Maternal peripheral parasitaemia at delivery (amplification techniques)", "k": 5, "theta": -0.4712, "p_value": 0.031736, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD006712", "analysis_name": "Pain with aspiration", "k": 3, "theta": 0.4058, "p_value": 0.160631, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD006714", "analysis_name": "Abortion completed with intended method (defined as fetal expulsion)", "k": 3, "theta": -0.0006, "p_value": 0.957088, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD006742", "analysis_name": "All-Cause Mortality", "k": 4, "theta": -0.1679, "p_value": 0.260445, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD006839", "analysis_name": "Proportion of participants with clinical improvement in function compared to baseline", "k": 3, "theta": -0.0639, "p_value": 0.389812, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD006913", "analysis_name": "Number of patients completing program - psychotherapy vs any control, all populations", "k": 29, "theta": -0.0594, "p_value": 0.01043, "I2": 70.7, "tau2": 0.0073, "has_trajectory": false}, {"review_id": "CD006919", "analysis_name": "Clinical pregnancies all studies", "k": 19, "theta": 0.4066, "p_value": 0.010469, "I2": 26.8, "tau2": 0.12, "has_trajectory": false}, {"review_id": "CD006942", "analysis_name": "Live birth or ongoing pregnancy rate per couple", "k": 4, "theta": -0.0723, "p_value": 0.797151, "I2": 70.2, "tau2": 0.2096, "has_trajectory": false}, {"review_id": "CD006982", "analysis_name": "Retinopathy of prematurity (stage \u2265 3)", "k": 4, "theta": -0.0584, "p_value": 0.877943, "I2": 43.5, "tau2": 0.2434, "has_trajectory": false}, {"review_id": "CD007024", "analysis_name": "Individual adverse events", "k": 18, "theta": 0.1389, "p_value": 0.065375, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD007026", "analysis_name": "All-cause death", "k": 7, "theta": -0.0555, "p_value": 0.778525, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD007079", "analysis_name": "Preterm birth < 37 weeks' gestation", "k": 10, "theta": -0.224, "p_value": 0.037789, "I2": 55.9, "tau2": 0.0426, "has_trajectory": false}, {"review_id": "CD007130", "analysis_name": "Completers", "k": 26, "theta": 0.0349, "p_value": 0.089157, "I2": 47.5, "tau2": 0.0035, "has_trajectory": false}, {"review_id": "CD007156", "analysis_name": "Difficulty in swallowing", "k": 3, "theta": -1.1132, "p_value": 0.000267, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD007374", "analysis_name": "Death", "k": 6, "theta": -0.1778, "p_value": 0.640738, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD007491", "analysis_name": "Readmission to hospital after discharge from hospital at home or inpatient care (3 to 12 months' follow-up)", "k": 8, "theta": 0.0489, "p_value": 0.713828, "I2": 41.2, "tau2": 0.0507, "has_trajectory": false}, {"review_id": "CD007569", "analysis_name": "Return to work", "k": 6, "theta": 0.0815, "p_value": 0.188528, "I2": 11.9, "tau2": 0.0031, "has_trajectory": false}, {"review_id": "CD007572", "analysis_name": "Failure to induce clinical remission (6 to 12 weeks)", "k": 10, "theta": -0.1549, "p_value": 2.1e-05, "I2": 64.5, "tau2": 0.0075, "has_trajectory": false}, {"review_id": "CD007639", "analysis_name": "Adverse events", "k": 5, "theta": -0.0323, "p_value": 0.888402, "I2": 69.4, "tau2": 0.1657, "has_trajectory": false}, {"review_id": "CD007674", "analysis_name": "Clinical recovery or improvement - best and worst case scenario", "k": 28, "theta": 0.3916, "p_value": 0.000744, "I2": 78.7, "tau2": 0.2472, "has_trajectory": false}, {"review_id": "CD007784", "analysis_name": "Major cardiovascular events", "k": 13, "theta": -0.3303, "p_value": 0.0, "I2": 38.9, "tau2": 0.0072, "has_trajectory": false}, {"review_id": "CD007809", "analysis_name": "Number of participants reporting an adverse event", "k": 3, "theta": 0.2462, "p_value": 0.334041, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD007859", "analysis_name": "Pain (analgesic consumption)", "k": 3, "theta": 0.1776, "p_value": 0.445925, "I2": 48.0, "tau2": 0.0782, "has_trajectory": false}, {"review_id": "CD007872", "analysis_name": "Estimated blood loss \u2265 500 mL", "k": 3, "theta": -0.0755, "p_value": 0.263682, "I2": 22.7, "tau2": 0.0038, "has_trajectory": false}, {"review_id": "CD007895", "analysis_name": "Withdrawals due to adverse effects", "k": 3, "theta": 0.1949, "p_value": 0.754723, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD007896", "analysis_name": "Withdrawals due to adverse effects", "k": 35, "theta": 0.8428, "p_value": 0.0, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD008063", "analysis_name": "Extent of substance use", "k": 50, "theta": 0.1791, "p_value": 0.0, "I2": 35.2, "tau2": 0.0129, "has_trajectory": false}, {"review_id": "CD008145", "analysis_name": "Reception of DTP3 by 1 year of age", "k": 6, "theta": 0.3092, "p_value": 0.000388, "I2": 89.4, "tau2": 0.0359, "has_trajectory": false}, {"review_id": "CD008165", "analysis_name": "Proportion of patients with one or more potentially inappropriate medication", "k": 13, "theta": -0.2079, "p_value": 0.026917, "I2": 83.6, "tau2": 0.0785, "has_trajectory": false}, {"review_id": "CD008176", "analysis_name": "Death (any cause)", "k": 38, "theta": -0.0488, "p_value": 0.521986, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD008237", "analysis_name": "Independent procedure completion: type of endoscopic procedure under study", "k": 6, "theta": 0.4677, "p_value": 0.002601, "I2": 53.2, "tau2": 0.0644, "has_trajectory": false}, {"review_id": "CD008309", "analysis_name": "Mechanical ventilation at any time", "k": 4, "theta": -0.6124, "p_value": 0.014352, "I2": 27.4, "tau2": 0.0689, "has_trajectory": false}, {"review_id": "CD008349", "analysis_name": "Upper limb function post intervention (composite measure)", "k": 68, "theta": 0.2695, "p_value": 0.000241, "I2": 68.4, "tau2": 0.2229, "has_trajectory": false}, {"review_id": "CD008469", "analysis_name": "Exacerbations leading to emergency department (ED) visits: subgrouped by time frame of follow-up", "k": 11, "theta": 0.0199, "p_value": 0.958543, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD008493", "analysis_name": "Atrial fibrillation", "k": 10, "theta": -0.1007, "p_value": 0.235623, "I2": 53.4, "tau2": 0.0299, "has_trajectory": false}, {"review_id": "CD008552", "analysis_name": "Vegetable intake", "k": 5, "theta": 0.2392, "p_value": 0.452625, "I2": 63.6, "tau2": 0.2673, "has_trajectory": false}, {"review_id": "CD008564", "analysis_name": "Total mortality", "k": 12, "theta": -0.1066, "p_value": 0.217939, "I2": 0.7, "tau2": 0.0007, "has_trajectory": false}, {"review_id": "CD008628", "analysis_name": "Function in the long term; number of people with scores of excellent, good, or satisfactory/fair", "k": 9, "theta": 0.1709, "p_value": 0.349005, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD008688", "analysis_name": "Pancreatic fistula (free definition)", "k": 3, "theta": -0.0404, "p_value": 0.651555, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD008709", "analysis_name": "Urinary retention", "k": 31, "theta": -0.3898, "p_value": 0.028966, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD008858", "analysis_name": "Participants with adverse events", "k": 63, "theta": 0.7621, "p_value": 0.0, "I2": 96.3, "tau2": 0.3548, "has_trajectory": false}, {"review_id": "CD008879", "analysis_name": "Non-infectious complications", "k": 8, "theta": -0.2404, "p_value": 0.049096, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD008940", "analysis_name": "Participants experiencing severe adverse events", "k": 4, "theta": -0.0128, "p_value": 0.985465, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD009022", "analysis_name": "Conversion to laparoscopic (use of more than one additional port)/open surgery (rate)", "k": 9, "theta": 1.0835, "p_value": 0.006221, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD009102", "analysis_name": "Intubation and mechanical ventilation in DR", "k": 5, "theta": -0.3651, "p_value": 0.106201, "I2": 57.1, "tau2": 0.1144, "has_trajectory": false}, {"review_id": "CD009235", "analysis_name": "Mortality", "k": 31, "theta": -0.0647, "p_value": 0.346812, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD009252", "analysis_name": "Subjective symptom of cure or improvement", "k": 14, "theta": 0.1694, "p_value": 0.381341, "I2": 42.3, "tau2": 0.1747, "has_trajectory": false}, {"review_id": "CD009298", "analysis_name": "Operative delivery (Subgroup analysis: nulliparous versus multiparous)", "k": 11, "theta": -0.0633, "p_value": 0.328664, "I2": 9.7, "tau2": 0.0046, "has_trajectory": false}, {"review_id": "CD009362", "analysis_name": "Pressure ulcer stage", "k": 27, "theta": -0.9545, "p_value": 0.0, "I2": 7.5, "tau2": 0.0607, "has_trajectory": false}, {"review_id": "CD009417", "analysis_name": "Adverse events of any severity or seriousness", "k": 5, "theta": 0.1087, "p_value": 0.494123, "I2": 33.7, "tau2": 0.0438, "has_trajectory": false}, {"review_id": "CD009508", "analysis_name": "Subjective cure/improvement", "k": 10, "theta": 0.8005, "p_value": 0.022013, "I2": 59.8, "tau2": 0.5647, "has_trajectory": false}, {"review_id": "CD009531", "analysis_name": "Attrition/leaving the study early", "k": 8, "theta": 0.1872, "p_value": 0.133285, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD009535", "analysis_name": "All-cause death", "k": 9, "theta": -0.2262, "p_value": 0.009975, "I2": 83.7, "tau2": 0.0466, "has_trajectory": false}, {"review_id": "CD009609", "analysis_name": "Need for treatment escalation", "k": 8, "theta": -0.5905, "p_value": 0.001078, "I2": 42.0, "tau2": 0.0877, "has_trajectory": false}, {"review_id": "CD009679", "analysis_name": "Complications", "k": 24, "theta": -0.0291, "p_value": 0.906446, "I2": 50.8, "tau2": 0.4996, "has_trajectory": false}, {"review_id": "CD009730", "analysis_name": "Adverse effects", "k": 10, "theta": -0.0391, "p_value": 0.914827, "I2": 8.4, "tau2": 0.1151, "has_trajectory": false}, {"review_id": "CD009749", "analysis_name": "Sensitivity analyses ", "k": 25, "theta": 0.0594, "p_value": 0.56483, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD009788", "analysis_name": "Leaving the study early", "k": 5, "theta": -0.388, "p_value": 0.01337, "I2": 6.0, "tau2": 0.0116, "has_trajectory": false}, {"review_id": "CD009945", "analysis_name": "50% responder", "k": 3, "theta": 0.7794, "p_value": 0.026336, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD010001", "analysis_name": "Clinical pregnancy", "k": 25, "theta": 0.3713, "p_value": 2e-06, "I2": 21.3, "tau2": 0.0295, "has_trajectory": false}, {"review_id": "CD010145", "analysis_name": "(Additional table) CR until progression of the disease", "k": 9, "theta": 1.2174, "p_value": 0.001299, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD010189", "analysis_name": "Overall survival", "k": 6, "theta": 0.0966, "p_value": 0.387197, "I2": 33.7, "tau2": 0.0237, "has_trajectory": false}, {"review_id": "CD010216", "analysis_name": "Serious adverse events", "k": 7, "theta": -0.0746, "p_value": 0.654421, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD010290", "analysis_name": "Incidence of OHSS per woman by urinary gonadotropins", "k": 7, "theta": 0.3627, "p_value": 0.234829, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD010441", "analysis_name": "Incidence of perineal trauma (tears or episiotomy or both)", "k": 3, "theta": -0.0598, "p_value": 0.167818, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD010533", "analysis_name": "Treatment-related mortality", "k": 3, "theta": -1.5761, "p_value": 0.014073, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD010583", "analysis_name": "Intra-abdominal infection", "k": 3, "theta": -0.5351, "p_value": 0.356466, "I2": 66.1, "tau2": 0.5956, "has_trajectory": false}, {"review_id": "CD010779", "analysis_name": "Passive range of motion with standardised force\u00a0", "k": 5, "theta": 0.0629, "p_value": 0.703381, "I2": 21.8, "tau2": 0.0298, "has_trajectory": false}, {"review_id": "CD010856", "analysis_name": "Sensitivity analysis - all included studies: change in the number of decayed, missing or filled permanent teeth (DMFT)", "k": 12, "theta": 0.983, "p_value": 1.2e-05, "I2": 98.4, "tau2": 0.55, "has_trajectory": false}, {"review_id": "CD010966", "analysis_name": "Most common adverse events (occurring in at least 10% of participants in either group)", "k": 67, "theta": -0.2072, "p_value": 0.006535, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD011039", "analysis_name": "Morbidity (by type)", "k": 5, "theta": -0.2753, "p_value": 0.321127, "I2": 77.0, "tau2": 0.2468, "has_trajectory": false}, {"review_id": "CD011120", "analysis_name": "Tobacco use cessation", "k": 9, "theta": 0.1035, "p_value": 0.405699, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD011197", "analysis_name": "Serious adverse events", "k": 6, "theta": 0.2627, "p_value": 0.474417, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD011204", "analysis_name": "Proportion of all-cause discontinuations at 6 months", "k": 13, "theta": 0.4369, "p_value": 3.2e-05, "I2": 68.4, "tau2": 0.0895, "has_trajectory": false}, {"review_id": "CD011305", "analysis_name": "All-cause mortality at 31 to 100 days", "k": 3, "theta": 0.0047, "p_value": 0.994341, "I2": 1.4, "tau2": 0.0208, "has_trajectory": false}, {"review_id": "CD011330", "analysis_name": "Withdrawal due to adverse events", "k": 4, "theta": 1.2931, "p_value": 0.079978, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD011381", "analysis_name": "Number of patients who discontinued treatment due to adverse effects", "k": 46, "theta": 0.1924, "p_value": 0.04094, "I2": 68.4, "tau2": 0.2234, "has_trajectory": false}, {"review_id": "CD011535", "analysis_name": "Anti-IL17 versus placebo", "k": 38, "theta": 3.292, "p_value": 0.0, "I2": 29.2, "tau2": 0.2172, "has_trajectory": false}, {"review_id": "CD011575", "analysis_name": "All-cause mortality", "k": 4, "theta": 0.1216, "p_value": 0.521955, "I2": 73.2, "tau2": 0.1037, "has_trajectory": false}, {"review_id": "CD011600", "analysis_name": "Pneumonia", "k": 5, "theta": 0.4633, "p_value": 0.0, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD011626", "analysis_name": "Adverse events", "k": 11, "theta": 0.5696, "p_value": 0.109664, "I2": 30.0, "tau2": 0.3305, "has_trajectory": false}, {"review_id": "CD011627", "analysis_name": "Number of participants with incontinence-associated dermatitis", "k": 8, "theta": -0.4069, "p_value": 0.278985, "I2": 68.8, "tau2": 0.6937, "has_trajectory": false}, {"review_id": "CD011670", "analysis_name": "Wound infection", "k": 7, "theta": -0.0183, "p_value": 0.959413, "I2": 45.2, "tau2": 0.3688, "has_trajectory": false}, {"review_id": "CD011671", "analysis_name": "Delayed graft function: type of donor", "k": 17, "theta": -0.2485, "p_value": 1.5e-05, "I2": 25.3, "tau2": 0.0132, "has_trajectory": false}, {"review_id": "CD011762", "analysis_name": "Major bleeding", "k": 29, "theta": -0.0351, "p_value": 0.780358, "I2": 10.3, "tau2": 0.0417, "has_trajectory": false}, {"review_id": "CD011778", "analysis_name": "PPD (change from baseline (mm)); 3 months", "k": 38, "theta": 0.4376, "p_value": 0.0, "I2": 97.4, "tau2": 0.1838, "has_trajectory": false}, {"review_id": "CD011793", "analysis_name": "Re-exploration", "k": 13, "theta": -0.1285, "p_value": 0.640012, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD011841", "analysis_name": "Recurrence of central serous chorioretinopathy at 12 months (\u00b1 6)", "k": 4, "theta": 0.1318, "p_value": 0.568023, "I2": 8.6, "tau2": 0.0239, "has_trajectory": false}, {"review_id": "CD011851", "analysis_name": "Fatal cardiovascular events", "k": 4, "theta": -0.1887, "p_value": 0.507949, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD011858", "analysis_name": "Extracorporeal circuit thrombosis", "k": 3, "theta": 0.4536, "p_value": 0.460466, "I2": 5.7, "tau2": 0.0895, "has_trajectory": false}, {"review_id": "CD011866", "analysis_name": "Dropouts", "k": 28, "theta": -0.1932, "p_value": 0.000232, "I2": 25.5, "tau2": 0.0154, "has_trajectory": false}, {"review_id": "CD011885", "analysis_name": "Clinically relevant response, as defined by study authors", "k": 7, "theta": 0.2229, "p_value": 0.362611, "I2": 42.6, "tau2": 0.1411, "has_trajectory": false}, {"review_id": "CD012067", "analysis_name": "Adverse events", "k": 38, "theta": 0.6381, "p_value": 0.00091, "I2": 94.0, "tau2": 1.0609, "has_trajectory": false}, {"review_id": "CD012079", "analysis_name": "Repeat surgery (0.5 to 7 years) including trials at high risk of bias", "k": 52, "theta": 0.4463, "p_value": 0.01717, "I2": 48.9, "tau2": 0.7012, "has_trajectory": false}, {"review_id": "CD012170", "analysis_name": "Weight", "k": 8, "theta": -2.0445, "p_value": 0.228604, "I2": 93.9, "tau2": 14.5461, "has_trajectory": false}, {"review_id": "CD012178", "analysis_name": "Incidence of NEC", "k": 5, "theta": -0.0913, "p_value": 0.805578, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD012186", "analysis_name": "Withdrawals due to AEs", "k": 105, "theta": 0.2843, "p_value": 1.4e-05, "I2": 58.1, "tau2": 0.1822, "has_trajectory": false}, {"review_id": "CD012214", "analysis_name": "Regression of endometrial hyperplasia (with or without atypia) to proliferative, secretory or atrophic endometrium", "k": 4, "theta": 1.172, "p_value": 0.000986, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD012268", "analysis_name": "Body weight", "k": 21, "theta": -0.1513, "p_value": 0.452393, "I2": 45.7, "tau2": 0.1552, "has_trajectory": false}, {"review_id": "CD012397", "analysis_name": "Specific behaviours: aggression, other episode of aggression (incidents per treatment days)", "k": 3, "theta": 0.0329, "p_value": 0.956447, "I2": 95.6, "tau2": 1.038, "has_trajectory": false}, {"review_id": "CD012426", "analysis_name": "All-cause mortality at 90 days", "k": 4, "theta": -0.0352, "p_value": 0.809235, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD012429", "analysis_name": "Total serious adverse events/effects", "k": 4, "theta": -0.0171, "p_value": 0.972496, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD012445", "analysis_name": "Child emotional and behavioural adjustment \u2013 postintervention", "k": 5, "theta": -0.0912, "p_value": 0.714032, "I2": 64.4, "tau2": 0.1929, "has_trajectory": false}, {"review_id": "CD012503", "analysis_name": "Recurrence of ischemic stroke at the endpoint (for all studies)", "k": 17, "theta": -0.1657, "p_value": 0.025823, "I2": 0.8, "tau2": 0.0016, "has_trajectory": false}, {"review_id": "CD012570", "analysis_name": "Adverse events", "k": 10, "theta": -0.0077, "p_value": 0.850388, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD012572", "analysis_name": "All-cause mortality", "k": 4, "theta": 0.7305, "p_value": 0.138783, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD012586", "analysis_name": "Live birth or ongoing pregnancy", "k": 42, "theta": -0.0578, "p_value": 0.065792, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD012623", "analysis_name": "Macular hole closure\u00a0", "k": 9, "theta": 0.0571, "p_value": 0.092314, "I2": 25.9, "tau2": 0.0024, "has_trajectory": false}, {"review_id": "CD012635", "analysis_name": "All-cause mortality at 30 days", "k": 6, "theta": -0.0308, "p_value": 0.767949, "I2": 28.0, "tau2": 0.0169, "has_trajectory": false}, {"review_id": "CD012642", "analysis_name": "Hypernatraemia (\u2265 150 mmol/L)", "k": 4, "theta": 0.3651, "p_value": 0.13167, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD012693", "analysis_name": "Cycle cancellations for poor response", "k": 8, "theta": -0.7774, "p_value": 0.003872, "I2": 28.7, "tau2": 0.1469, "has_trajectory": false}, {"review_id": "CD012718", "analysis_name": "Caries arrest (at end of study follow-up)", "k": 5, "theta": 0.4882, "p_value": 2.7e-05, "I2": 83.6, "tau2": 0.0559, "has_trajectory": false}, {"review_id": "CD012757", "analysis_name": "Mortality at longest follow-up", "k": 3, "theta": -0.1483, "p_value": 0.001013, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD012850", "analysis_name": "Frequency of joint noise", "k": 5, "theta": -0.0373, "p_value": 0.74244, "I2": 9.5, "tau2": 0.0069, "has_trajectory": false}, {"review_id": "CD012891", "analysis_name": "Ovarian insufficiency grouped by strict or broad definition", "k": 13, "theta": -0.597, "p_value": 0.000279, "I2": 74.9, "tau2": 0.2034, "has_trajectory": false}, {"review_id": "CD012905", "analysis_name": "Development of AKI", "k": 12, "theta": -0.3734, "p_value": 0.00237, "I2": 42.3, "tau2": 0.063, "has_trajectory": false}, {"review_id": "CD012925", "analysis_name": "Patient/client health status and well-being (undesirable outcomes)", "k": 6, "theta": -0.135, "p_value": 0.196122, "I2": 79.7, "tau2": 0.0469, "has_trajectory": false}, {"review_id": "CD012942", "analysis_name": "Comparison 1 All antidepressants versus placebo, Outcome 2 Acceptability", "k": 36, "theta": 0.0284, "p_value": 0.574294, "I2": 51.7, "tau2": 0.0432, "has_trajectory": false}, {"review_id": "CD012967", "analysis_name": "Adverse events leading to cessation of treatment", "k": 3, "theta": 0.3227, "p_value": 0.566161, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD012993", "analysis_name": "Treatment-emergent adverse events (breakdown 2)", "k": 13, "theta": 0.1398, "p_value": 0.402934, "I2": 32.3, "tau2": 0.11, "has_trajectory": false}, {"review_id": "CD013042", "analysis_name": "Participant reported treatment success", "k": 13, "theta": 0.0774, "p_value": 0.086394, "I2": 48.3, "tau2": 0.0093, "has_trajectory": false}, {"review_id": "CD013051", "analysis_name": "Resolution of ear discharge (1 to up to 2 weeks)", "k": 7, "theta": 0.6274, "p_value": 0.00154, "I2": 90.1, "tau2": 0.2259, "has_trajectory": false}, {"review_id": "CD013052", "analysis_name": "Subgroup analysis: CSOM diagnosis", "k": 5, "theta": 0.0185, "p_value": 0.538907, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013053", "analysis_name": "Resolution of ear discharge", "k": 4, "theta": 0.4217, "p_value": 1e-06, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013054", "analysis_name": "Sensitivity analysis: unpublished - resolution of ear discharge 1 to 2 weeks", "k": 8, "theta": -0.2663, "p_value": 0.0, "I2": 47.4, "tau2": 0.0084, "has_trajectory": false}, {"review_id": "CD013055", "analysis_name": "Resolution of ear discharge (2 to 4 weeks)", "k": 3, "theta": 0.6838, "p_value": 2e-06, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013056", "analysis_name": "Resolution of ear discharge (1\u20132 weeks)", "k": 4, "theta": -0.3089, "p_value": 0.020579, "I2": 81.4, "tau2": 0.0526, "has_trajectory": false}, {"review_id": "CD013059", "analysis_name": "Treatment non-acceptability", "k": 5, "theta": 1.2367, "p_value": 0.022095, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013071", "analysis_name": "Treatment withdrawal due to adverse events", "k": 16, "theta": -0.2997, "p_value": 0.089566, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013105", "analysis_name": "Bladder function ", "k": 5, "theta": -0.7443, "p_value": 0.102827, "I2": 49.3, "tau2": 0.4552, "has_trajectory": false}, {"review_id": "CD013197", "analysis_name": "Serious adverse events (sensitivity analysis)", "k": 64, "theta": -0.1503, "p_value": 0.424462, "I2": 69.2, "tau2": 1.2938, "has_trajectory": false}, {"review_id": "CD013232", "analysis_name": "Adverse effects: neurological", "k": 121, "theta": 0.0314, "p_value": 0.666833, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013255", "analysis_name": "Sinus rhythm until hospital discharge or end of study follow-up (paroxysmal AF)", "k": 9, "theta": 0.8126, "p_value": 0.0, "I2": 80.6, "tau2": 0.1356, "has_trajectory": false}, {"review_id": "CD013278", "analysis_name": "All-cause mortality during hospital stay", "k": 12, "theta": 0.1834, "p_value": 0.1136, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013284", "analysis_name": "Mortality (all-cause)", "k": 4, "theta": 0.1182, "p_value": 0.730902, "I2": 12.0, "tau2": 0.061, "has_trajectory": false}, {"review_id": "CD013295", "analysis_name": "Need for allogeneic blood transfusion (only trials included in the NMA)", "k": 66, "theta": -0.3585, "p_value": 6.1e-05, "I2": 52.3, "tau2": 0.206, "has_trajectory": false}, {"review_id": "CD013332", "analysis_name": "SSI", "k": 10, "theta": -0.4722, "p_value": 0.001997, "I2": 46.9, "tau2": 0.0966, "has_trajectory": false}, {"review_id": "CD013342", "analysis_name": "Total adverse events", "k": 8, "theta": 0.3506, "p_value": 0.034577, "I2": 48.4, "tau2": 0.0826, "has_trajectory": false}, {"review_id": "CD013344", "analysis_name": "Therapy-related adverse events", "k": 6, "theta": 0.5704, "p_value": 0.13296, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013353", "analysis_name": "PIPP during endotracheal suctioning", "k": 6, "theta": -2.1839, "p_value": 0.003645, "I2": 73.9, "tau2": 2.4296, "has_trajectory": false}, {"review_id": "CD013355", "analysis_name": "Neurological outcome: severe intraventricular haemorrhage", "k": 4, "theta": -0.1682, "p_value": 0.700507, "I2": 35.1, "tau2": 0.2861, "has_trajectory": false}, {"review_id": "CD013358", "analysis_name": "Smoking cessation", "k": 6, "theta": 0.368, "p_value": 0.240626, "I2": 78.6, "tau2": 0.4363, "has_trajectory": false}, {"review_id": "CD013366", "analysis_name": "Occlusion (sensitivity analyses)", "k": 7, "theta": -0.1701, "p_value": 0.476759, "I2": 1.3, "tau2": 0.0081, "has_trajectory": false}, {"review_id": "CD013396", "analysis_name": "Adverse events", "k": 16, "theta": -0.1489, "p_value": 0.489138, "I2": 40.6, "tau2": 0.2353, "has_trajectory": false}, {"review_id": "CD013408", "analysis_name": "All-cause mortality", "k": 5, "theta": -0.4448, "p_value": 0.008139, "I2": 34.9, "tau2": 0.0483, "has_trajectory": false}, {"review_id": "CD013414", "analysis_name": "Adverse events", "k": 15, "theta": 0.6069, "p_value": 0.000231, "I2": 54.7, "tau2": 0.1791, "has_trajectory": false}, {"review_id": "CD013421", "analysis_name": "Failure of hemostatic intervention", "k": 15, "theta": -0.7669, "p_value": 0.0, "I2": 60.4, "tau2": 0.1345, "has_trajectory": false}, {"review_id": "CD013425", "analysis_name": "Leaving the study early: adverse effects", "k": 21, "theta": 0.6876, "p_value": 0.0, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013429", "analysis_name": "Primary: Eustachian tube function measured by an objective or semi-objective test: improvement of tympanometry (by ear)", "k": 4, "theta": 0.9228, "p_value": 0.0, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013445", "analysis_name": "Stone-free rate", "k": 39, "theta": 0.1118, "p_value": 0.0, "I2": 57.2, "tau2": 0.0068, "has_trajectory": false}, {"review_id": "CD013456", "analysis_name": "Trauma-focused versus non trauma-focused interventions; outcome 3:\u00a0Dropout from treatment", "k": 12, "theta": 0.3555, "p_value": 0.010279, "I2": 17.6, "tau2": 0.0369, "has_trajectory": false}, {"review_id": "CD013462", "analysis_name": "Rate of postoperative pancreatic fistula (grade B or C defined according to the 2005 ISGPF definition)", "k": 17, "theta": 0.299, "p_value": 0.305484, "I2": 62.2, "tau2": 0.7111, "has_trajectory": false}, {"review_id": "CD013474", "analysis_name": "Treatment discontinuation", "k": 6, "theta": -0.0732, "p_value": 0.575705, "I2": 64.0, "tau2": 0.0504, "has_trajectory": false}, {"review_id": "CD013476", "analysis_name": "Significant adverse events during maintenance therapy up to 6 months follow-up", "k": 3, "theta": 1.3113, "p_value": 0.132273, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013508", "analysis_name": "MACE", "k": 4, "theta": 0.196, "p_value": 0.559211, "I2": 33.9, "tau2": 0.1543, "has_trajectory": false}, {"review_id": "CD013539", "analysis_name": "Antidrug antibodies", "k": 29, "theta": 0.0021, "p_value": 0.973053, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013541", "analysis_name": "Leaving the study early (> 12 months postintervention)", "k": 8, "theta": -0.1637, "p_value": 0.441258, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013561", "analysis_name": "Adverse events", "k": 5, "theta": 0.2108, "p_value": 0.406265, "I2": 36.6, "tau2": 0.1155, "has_trajectory": false}, {"review_id": "CD013571", "analysis_name": "Participant-reported cure or improvement: immediately after treatment", "k": 4, "theta": 0.3044, "p_value": 0.002653, "I2": 44.2, "tau2": 0.0172, "has_trajectory": false}, {"review_id": "CD013590", "analysis_name": "SCD-related complications (number of participants)", "k": 5, "theta": 0.4638, "p_value": 0.151361, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013591", "analysis_name": "Physical activity (other measures)", "k": 13, "theta": 5.4592, "p_value": 0.003111, "I2": 91.0, "tau2": 15.7784, "has_trajectory": false}, {"review_id": "CD013595", "analysis_name": "On-study mortality", "k": 3, "theta": -0.3277, "p_value": 1.1e-05, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013613", "analysis_name": "Dropout for any reason at study endpoint", "k": 3, "theta": -0.032, "p_value": 0.773178, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013614", "analysis_name": "Clinical improvement as measured by ACR20 response criteria or by the EULAR moderate response criteria or by PsARC criteria at 12 weeks", "k": 15, "theta": 1.0759, "p_value": 0.0, "I2": 80.0, "tau2": 0.1341, "has_trajectory": false}, {"review_id": "CD013631", "analysis_name": "Adverse events: any adverse event", "k": 3, "theta": 0.4039, "p_value": 0.297536, "I2": 42.1, "tau2": 0.1854, "has_trajectory": false}, {"review_id": "CD013643", "analysis_name": "Number of minor adverse events (Clavien-Dindo I, II), short term (< 1 year) ", "k": 6, "theta": 1.3222, "p_value": 0.003127, "I2": 57.5, "tau2": 0.5311, "has_trajectory": false}, {"review_id": "CD013672", "analysis_name": "Treatment retention", "k": 7, "theta": 0.1359, "p_value": 0.087215, "I2": 68.7, "tau2": 0.0265, "has_trajectory": false}, {"review_id": "CD013715", "analysis_name": "Sensitivity analysis: pedACR70 at the latest time point", "k": 7, "theta": 0.5389, "p_value": 0.005686, "I2": 55.1, "tau2": 0.126, "has_trajectory": false}, {"review_id": "CD013719", "analysis_name": "Sensitivity analysis. Oral small molecule inhibitors: baricitinib vs placebo", "k": 4, "theta": 1.1409, "p_value": 0.000704, "I2": 79.9, "tau2": 0.3246, "has_trajectory": false}, {"review_id": "CD013726", "analysis_name": "Adverse events", "k": 12, "theta": -0.1767, "p_value": 0.526661, "I2": 69.0, "tau2": 0.5466, "has_trajectory": false}, {"review_id": "CD013745", "analysis_name": "NOACs versus antiplatelet therapy", "k": 3, "theta": 0.5183, "p_value": 0.001311, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013748", "analysis_name": "Poor functional outcome", "k": 8, "theta": -0.2621, "p_value": 0.038738, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013757", "analysis_name": "Hospitalisation due to RSV infection", "k": 6, "theta": -0.7176, "p_value": 0.009668, "I2": 53.6, "tau2": 0.178, "has_trajectory": false}, {"review_id": "CD013758", "analysis_name": "Any adverse event", "k": 4, "theta": -0.0619, "p_value": 0.460793, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013763", "analysis_name": "Rates of opioid-related adverse events (PONV)", "k": 21, "theta": -0.7568, "p_value": 0.0, "I2": 14.3, "tau2": 0.0459, "has_trajectory": false}, {"review_id": "CD013764", "analysis_name": "Successful abortion", "k": 4, "theta": -0.0005, "p_value": 0.927724, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013773", "analysis_name": "Incidence of myopia", "k": 7, "theta": -0.1956, "p_value": 0.002491, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013774", "analysis_name": "Adverse events grade 3 to 5", "k": 3, "theta": -0.7601, "p_value": 0.001671, "I2": 97.2, "tau2": 0.1671, "has_trajectory": false}, {"review_id": "CD013781", "analysis_name": "All-cause mortality", "k": 14, "theta": -0.4986, "p_value": 0.005603, "I2": 4.2, "tau2": 0.02, "has_trajectory": false}, {"review_id": "CD013789", "analysis_name": "Scar thickness (ultrasound, PGT vs other scar management therapy)", "k": 38, "theta": -0.0884, "p_value": 0.27294, "I2": 41.9, "tau2": 0.0837, "has_trajectory": false}, {"review_id": "CD013800", "analysis_name": "All-cause death", "k": 48, "theta": -0.1472, "p_value": 0.008113, "I2": 98.8, "tau2": 0.107, "has_trajectory": false}, {"review_id": "CD013816", "analysis_name": "Thromboembolic events (composite)", "k": 4, "theta": -0.1595, "p_value": 0.84241, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013821", "analysis_name": "Short-term complications", "k": 22, "theta": -0.2212, "p_value": 0.076639, "I2": 91.0, "tau2": 0.2492, "has_trajectory": false}, {"review_id": "CD013822", "analysis_name": "Knowledge - dichotomous (correct answers)", "k": 15, "theta": 0.3589, "p_value": 0.0, "I2": 94.5, "tau2": 0.0291, "has_trajectory": false}, {"review_id": "CD013827", "analysis_name": "Miscarriage", "k": 14, "theta": -0.2233, "p_value": 0.278358, "I2": 14.4, "tau2": 0.0834, "has_trajectory": false}, {"review_id": "CD013830", "analysis_name": "Positive-pressure ventilation after institution of treatment", "k": 7, "theta": -0.33, "p_value": 0.059779, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013834", "analysis_name": "Gait speed", "k": 8, "theta": 0.0319, "p_value": 0.881039, "I2": 61.2, "tau2": 0.2173, "has_trajectory": false}, {"review_id": "CD013844", "analysis_name": "Acceptability (dropouts)", "k": 9, "theta": 0.3658, "p_value": 0.167722, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013874", "analysis_name": "Serious adverse events assessed with Grades 3/4 CTCAE over 24 months ", "k": 4, "theta": -0.1864, "p_value": 0.656826, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD013875", "analysis_name": "Clinical pregnancy \u2013 all studies", "k": 9, "theta": 0.7962, "p_value": 5.8e-05, "I2": 24.0, "tau2": 0.0833, "has_trajectory": false}, {"review_id": "CD014040", "analysis_name": "Fertilization rate ", "k": 14, "theta": 0.1242, "p_value": 0.001662, "I2": 76.5, "tau2": 0.0135, "has_trajectory": false}, {"review_id": "CD014089", "analysis_name": "Adverse effects", "k": 6, "theta": 0.4518, "p_value": 0.032604, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD014145", "analysis_name": "Failed apnea reduction after 2 to 7 days", "k": 6, "theta": -0.3455, "p_value": 0.386458, "I2": 22.0, "tau2": 0.2127, "has_trajectory": false}, {"review_id": "CD014300", "analysis_name": "Acceptability at study endpoint: children", "k": 9, "theta": -0.0843, "p_value": 0.707611, "I2": 83.0, "tau2": 0.2909, "has_trajectory": false}, {"review_id": "CD014428", "analysis_name": "Pain intensity", "k": 6, "theta": -13.8595, "p_value": 2e-06, "I2": 89.8, "tau2": 36.1601, "has_trajectory": false}, {"review_id": "CD014541", "analysis_name": "Major bleeding: short-term (45 days or fewer)", "k": 5, "theta": 0.7116, "p_value": 9.6e-05, "I2": 22.6, "tau2": 0.0377, "has_trajectory": false}, {"review_id": "CD014544", "analysis_name": "Adverse events", "k": 12, "theta": -0.0016, "p_value": 0.992471, "I2": 26.6, "tau2": 0.0768, "has_trajectory": false}, {"review_id": "CD014585", "analysis_name": "Adverse events", "k": 12, "theta": -0.0548, "p_value": 0.379713, "I2": 71.5, "tau2": 0.0188, "has_trajectory": false}, {"review_id": "CD014594", "analysis_name": "First-pass success", "k": 7, "theta": 1.2091, "p_value": 0.0, "I2": 69.4, "tau2": 0.0918, "has_trajectory": false}, {"review_id": "CD014617", "analysis_name": "Risk of ocular infection within one month of corneal abrasion", "k": 3, "theta": 0.0959, "p_value": 0.383964, "I2": 7.5, "tau2": 0.0038, "has_trajectory": false}, {"review_id": "CD014624", "analysis_name": "Depression response (early phase)", "k": 38, "theta": 0.164, "p_value": 5.9e-05, "I2": 3.9, "tau2": 0.0025, "has_trajectory": false}, {"review_id": "CD014666", "analysis_name": "Occurrence of falls: immediate postintervention", "k": 6, "theta": -0.0429, "p_value": 0.819428, "I2": 79.5, "tau2": 0.1265, "has_trajectory": false}, {"review_id": "CD014678", "analysis_name": "All-cause mortality", "k": 10, "theta": -0.1741, "p_value": 0.018358, "I2": 18.7, "tau2": 0.0094, "has_trajectory": false}, {"review_id": "CD014688", "analysis_name": "Child/adolescent quality of life between baseline and 12 months (self-reported) ", "k": 4, "theta": 0.6343, "p_value": 0.13678, "I2": 96.1, "tau2": 0.6906, "has_trajectory": false}, {"review_id": "CD014713", "analysis_name": "Unplanned hospital presentation rates - unplanned hospital admissions within one month (30 days)", "k": 5, "theta": -0.0066, "p_value": 0.970574, "I2": 48.7, "tau2": 0.068, "has_trajectory": false}, {"review_id": "CD014722", "analysis_name": "Diagnosis of mental disorders at 1-6 months\u00a0", "k": 6, "theta": -0.4306, "p_value": 0.001132, "I2": 21.1, "tau2": 0.0225, "has_trajectory": false}, {"review_id": "CD014736", "analysis_name": "Mortality by end of follow-up", "k": 4, "theta": -0.0827, "p_value": 0.834184, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD014741", "analysis_name": "Adverse events", "k": 13, "theta": 0.1146, "p_value": 0.02013, "I2": 42.4, "tau2": 0.01, "has_trajectory": false}, {"review_id": "CD014758", "analysis_name": "Change in refractive error from baseline", "k": 22, "theta": 0.1776, "p_value": 0.0, "I2": 60.3, "tau2": 0.0116, "has_trajectory": false}, {"review_id": "CD014762", "analysis_name": "Adverse events (to day 30 after randomisation)", "k": 7, "theta": 0.0794, "p_value": 0.446305, "I2": 46.4, "tau2": 0.0258, "has_trajectory": false}, {"review_id": "CD014763", "analysis_name": "Surgical site infection", "k": 9, "theta": -1.8007, "p_value": 0.0, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD014769", "analysis_name": "Any VTE", "k": 27, "theta": -0.1468, "p_value": 0.027202, "I2": 4.4, "tau2": 0.0053, "has_trajectory": false}, {"review_id": "CD014792", "analysis_name": "Major complications", "k": 11, "theta": -0.4023, "p_value": 0.15383, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD014803", "analysis_name": "Attrition (dropouts)", "k": 5, "theta": -0.0662, "p_value": 0.854598, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD014811", "analysis_name": "All-cause mortality", "k": 4, "theta": 0.4246, "p_value": 0.191157, "I2": 3.9, "tau2": 0.0253, "has_trajectory": false}, {"review_id": "CD014820", "analysis_name": "Acute kidney injury", "k": 17, "theta": -0.0282, "p_value": 0.658964, "I2": 18.1, "tau2": 0.0106, "has_trajectory": false}, {"review_id": "CD014833", "analysis_name": "Breastfeeding exclusivity short-term 1 to 3 months post-intervention", "k": 5, "theta": 0.225, "p_value": 0.06773, "I2": 59.8, "tau2": 0.0399, "has_trajectory": false}, {"review_id": "CD014845", "analysis_name": "Subgroup analysis: food selection/purchasing by label type (kcal)", "k": 20, "theta": -0.0593, "p_value": 1.1e-05, "I2": 11.6, "tau2": 0.0004, "has_trajectory": false}, {"review_id": "CD014852", "analysis_name": "Complication (pneumonia) during intervention phase", "k": 4, "theta": -0.5251, "p_value": 0.162555, "I2": 70.9, "tau2": 0.3734, "has_trajectory": false}, {"review_id": "CD014855", "analysis_name": "Intraperitoneal abscess", "k": 7, "theta": 0.0738, "p_value": 0.829961, "I2": 51.2, "tau2": 0.3961, "has_trajectory": false}, {"review_id": "CD014861", "analysis_name": "Proportion of participants completing treatment regimen as planned", "k": 4, "theta": 0.0968, "p_value": 0.406989, "I2": 55.6, "tau2": 0.0299, "has_trajectory": false}, {"review_id": "CD014869", "analysis_name": " All-cause mortality (between  1 and 5 years)", "k": 8, "theta": -0.0137, "p_value": 0.6895, "I2": 44.0, "tau2": 0.0027, "has_trajectory": false}, {"review_id": "CD014871", "analysis_name": "Self-selected comfortable walking speed", "k": 8, "theta": 0.1317, "p_value": 0.001158, "I2": 56.8, "tau2": 0.0072, "has_trajectory": false}, {"review_id": "CD014872", "analysis_name": "Overall response rate", "k": 13, "theta": 1.1036, "p_value": 0.0, "I2": 39.3, "tau2": 0.0816, "has_trajectory": false}, {"review_id": "CD014889", "analysis_name": "All-cause mortality", "k": 5, "theta": -0.7803, "p_value": 0.003425, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD014914", "analysis_name": "Adverse events (treatment): primary analysis", "k": 16, "theta": 0.2892, "p_value": 0.000112, "I2": 44.2, "tau2": 0.0292, "has_trajectory": false}, {"review_id": "CD014923", "analysis_name": "Patient disability - number of participants who improved (unpaired, parallel assessment < 12 months)", "k": 3, "theta": 1.9064, "p_value": 0.003066, "I2": 41.8, "tau2": 0.5174, "has_trajectory": false}, {"review_id": "CD014932", "analysis_name": "Improvement in quality-of-life measures: family impact", "k": 7, "theta": -1.082, "p_value": 0.106668, "I2": 69.7, "tau2": 1.9648, "has_trajectory": false}, {"review_id": "CD014935", "analysis_name": "All-cause mortality", "k": 3, "theta": 0.0359, "p_value": 0.943529, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD014937", "analysis_name": "Subgroup analysis: acute kidney injury by population", "k": 66, "theta": -0.2594, "p_value": 2.2e-05, "I2": 70.2, "tau2": 0.0991, "has_trajectory": false}, {"review_id": "CD014941", "analysis_name": "Cenobamate versus placebo - subgroup analysis, 50% responder rate", "k": 4, "theta": 0.7626, "p_value": 0.0, "I2": 2.9, "tau2": 0.0012, "has_trajectory": false}, {"review_id": "CD014944", "analysis_name": "Proportion of participants without treatment success at the longest follow-up (1\u20134 years)", "k": 3, "theta": 0.0453, "p_value": 0.847185, "I2": 65.5, "tau2": 0.1043, "has_trajectory": false}, {"review_id": "CD014959", "analysis_name": "Proportion of people with laboratory-confirmed leptospirosis regardless of the presence of an identified clinical syndrome (inclusive of asymptomatic cases) ", "k": 5, "theta": -0.5553, "p_value": 0.160241, "I2": 78.0, "tau2": 0.4749, "has_trajectory": false}, {"review_id": "CD014960", "analysis_name": "All-cause mortality", "k": 3, "theta": 0.4527, "p_value": 0.311716, "I2": 7.7, "tau2": 0.0817, "has_trajectory": false}, {"review_id": "CD014964", "analysis_name": "First-attempt success (Types of ultrasound guidance: preprocedural versus real\u2010time)", "k": 54, "theta": 0.3172, "p_value": 0.0, "I2": 74.5, "tau2": 0.0461, "has_trajectory": false}, {"review_id": "CD014965", "analysis_name": "Other side effects: sedation", "k": 8, "theta": 1.2666, "p_value": 3e-06, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD014966", "analysis_name": "Death", "k": 28, "theta": -0.0895, "p_value": 0.06469, "I2": 91.1, "tau2": 0.0386, "has_trajectory": false}, {"review_id": "CD014967", "analysis_name": "Mortality before hospital discharge", "k": 5, "theta": 0.3607, "p_value": 0.208772, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015003", "analysis_name": "Adverse events", "k": 10, "theta": 0.7143, "p_value": 0.031829, "I2": 33.4, "tau2": 0.2923, "has_trajectory": false}, {"review_id": "CD015014", "analysis_name": "Mortality (proportion of residents who died)", "k": 24, "theta": 0.0342, "p_value": 0.554634, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015033", "analysis_name": "Imaging response. No-improvement in steatosis on ultrasound (range from 5 months to 12 months)", "k": 4, "theta": -0.1981, "p_value": 0.032297, "I2": 12.9, "tau2": 0.0047, "has_trajectory": false}, {"review_id": "CD015038", "analysis_name": "Wound infection", "k": 9, "theta": -1.3964, "p_value": 0.007021, "I2": 16.5, "tau2": 0.3964, "has_trajectory": false}, {"review_id": "CD015040", "analysis_name": "Stimulation frequency: low versus high frequency", "k": 7, "theta": -0.4327, "p_value": 0.097238, "I2": 62.8, "tau2": 0.2603, "has_trajectory": false}, {"review_id": "CD015042", "analysis_name": "Number of women who completed treatment", "k": 7, "theta": -0.0202, "p_value": 0.348216, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015064", "analysis_name": "Pimecrolimus 1% versus vehicle", "k": 4, "theta": 0.4136, "p_value": 0.08451, "I2": 81.0, "tau2": 0.1755, "has_trajectory": false}, {"review_id": "CD015083", "analysis_name": "Back-related function", "k": 67, "theta": -0.1358, "p_value": 6e-06, "I2": 59.4, "tau2": 0.0303, "has_trajectory": false}, {"review_id": "CD015087", "analysis_name": "Nausea and/or vomiting", "k": 7, "theta": -0.3686, "p_value": 0.070444, "I2": 37.9, "tau2": 0.0917, "has_trajectory": false}, {"review_id": "CD015120", "analysis_name": "Smoking cessation", "k": 5, "theta": -0.0923, "p_value": 0.798385, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015122", "analysis_name": "Blood transfusion", "k": 9, "theta": -0.7887, "p_value": 0.002316, "I2": 26.1, "tau2": 0.1527, "has_trajectory": false}, {"review_id": "CD015124", "analysis_name": "Assessment of prognostic factors around breast cancer diagnosis", "k": 8, "theta": -0.7514, "p_value": 0.0, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015134", "analysis_name": "Preterm birth", "k": 6, "theta": 0.1504, "p_value": 0.062363, "I2": 17.3, "tau2": 0.0067, "has_trajectory": false}, {"review_id": "CD015140", "analysis_name": "Risk of relapse in drug-off time - fixed-effect model", "k": 5, "theta": -0.0917, "p_value": 0.632234, "I2": 55.3, "tau2": 0.0904, "has_trajectory": false}, {"review_id": "CD015145", "analysis_name": "Nausea and vomiting", "k": 3, "theta": -0.3836, "p_value": 0.070913, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015160", "analysis_name": "Clinical recurrence or reoperation for recurrence within one year of repair", "k": 4, "theta": -1.1338, "p_value": 0.038384, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015192", "analysis_name": "Surgical site infection rate", "k": 6, "theta": 0.1939, "p_value": 0.694825, "I2": 22.5, "tau2": 0.3275, "has_trajectory": false}, {"review_id": "CD015213", "analysis_name": "Recurrence rate", "k": 12, "theta": -1.4942, "p_value": 3.1e-05, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015215", "analysis_name": "Presence/persistence of OME, randomised by child (long-term)", "k": 3, "theta": 0.1867, "p_value": 0.317767, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015219", "analysis_name": "All adverse events", "k": 18, "theta": 0.2382, "p_value": 0.013292, "I2": 63.8, "tau2": 0.0844, "has_trajectory": false}, {"review_id": "CD015229", "analysis_name": "Opiate consumption at 3 months", "k": 9, "theta": -66.5402, "p_value": 0.0, "I2": 39.2, "tau2": 133.9189, "has_trajectory": false}, {"review_id": "CD015252", "analysis_name": "Presence or persistence of OME", "k": 7, "theta": -0.121, "p_value": 0.009357, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015254", "analysis_name": "Sensitivity analysis: persistence (short-term) including cases of acute otitis (Mandel 1987)", "k": 10, "theta": -0.1347, "p_value": 0.005699, "I2": 63.5, "tau2": 0.0129, "has_trajectory": false}, {"review_id": "CD015255", "analysis_name": "Persistence of OME (very short-term - up to 6 weeks)", "k": 7, "theta": -0.2971, "p_value": 0.024029, "I2": 81.5, "tau2": 0.0806, "has_trajectory": false}, {"review_id": "CD015284", "analysis_name": "Seizure freedom", "k": 5, "theta": 0.5278, "p_value": 0.019375, "I2": 70.8, "tau2": 0.1602, "has_trajectory": false}, {"review_id": "CD015314", "analysis_name": "Tobacco cessation at longest follow-up", "k": 21, "theta": 0.5635, "p_value": 0.0, "I2": 68.1, "tau2": 0.1108, "has_trajectory": false}, {"review_id": "CD015326", "analysis_name": "zBMI (Medium Term)", "k": 16, "theta": -0.0719, "p_value": 8.5e-05, "I2": 17.9, "tau2": 0.0009, "has_trajectory": false}, {"review_id": "CD015328", "analysis_name": "BMI short-term", "k": 27, "theta": -0.1081, "p_value": 0.030002, "I2": 71.9, "tau2": 0.0307, "has_trajectory": false}, {"review_id": "CD015330", "analysis_name": "BMI short term", "k": 11, "theta": 0.0301, "p_value": 0.569948, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015331", "analysis_name": "Leaving the study early - for any reason - overall acceptability (separated time points)", "k": 48, "theta": -0.168, "p_value": 0.002617, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015332", "analysis_name": "Leaving the study early \u2013 for any reason \u2013 overall acceptability (separated time points)", "k": 5, "theta": -0.2039, "p_value": 0.2227, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015350", "analysis_name": "Proportion with non-serious or non-severe harms/adverse events", "k": 9, "theta": -0.3511, "p_value": 0.361196, "I2": 58.4, "tau2": 0.6689, "has_trajectory": false}, {"review_id": "CD015373", "analysis_name": "Tolerability", "k": 5, "theta": 0.2238, "p_value": 0.708166, "I2": 10.9, "tau2": 0.197, "has_trajectory": false}, {"review_id": "CD015383", "analysis_name": "Anxiety on STAI-T (scale 20 to 80)", "k": 5, "theta": -8.4087, "p_value": 0.000263, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015387", "analysis_name": "All-cause mortality at the end of scheduled follow-up", "k": 21, "theta": -0.2345, "p_value": 2.9e-05, "I2": 12.6, "tau2": 0.0076, "has_trajectory": false}, {"review_id": "CD015395", "analysis_name": "Worsening of clinical status at day 28: admission to hospital or death (subgroup analysis based on ethnicity)", "k": 4, "theta": -1.9158, "p_value": 0.0, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015432", "analysis_name": "Number of children who required rescue medication 2 hours to less than 24 hours postintervention", "k": 8, "theta": -0.129, "p_value": 0.474319, "I2": 75.0, "tau2": 0.1459, "has_trajectory": false}, {"review_id": "CD015443", "analysis_name": "Discontinuations due to adverse events", "k": 19, "theta": 0.6762, "p_value": 2.6e-05, "I2": 51.4, "tau2": 0.2037, "has_trajectory": false}, {"review_id": "CD015448", "analysis_name": "Mean change from baseline in symptom scores at 4 weeks", "k": 7, "theta": 1.6006, "p_value": 0.179469, "I2": 29.9, "tau2": 2.8437, "has_trajectory": false}, {"review_id": "CD015476", "analysis_name": "Adenoma detection rate", "k": 15, "theta": 0.1668, "p_value": 1.6e-05, "I2": 64.0, "tau2": 0.012, "has_trajectory": false}, {"review_id": "CD015514", "analysis_name": "Adverse events - outer retinal folds", "k": 3, "theta": -0.3407, "p_value": 0.30556, "I2": 36.8, "tau2": 0.1234, "has_trajectory": false}, {"review_id": "CD015518", "analysis_name": "Cancer-related fatigue \u2264 12 weeks", "k": 12, "theta": -0.3902, "p_value": 0.003242, "I2": 77.1, "tau2": 0.1556, "has_trajectory": false}, {"review_id": "CD015520", "analysis_name": "CRF \u2264 12 weeks", "k": 5, "theta": -0.257, "p_value": 0.001914, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015524", "analysis_name": "Analysis 1.8. Outcome 5: Proportion of participants with non-serious adverse events", "k": 4, "theta": 0.257, "p_value": 0.1872, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015532", "analysis_name": "Overall mortality and in-hospital mortality", "k": 11, "theta": -0.0078, "p_value": 0.957676, "I2": 52.6, "tau2": 0.1123, "has_trajectory": false}, {"review_id": "CD015536", "analysis_name": "Proportion of people with serious adverse events", "k": 10, "theta": -0.4173, "p_value": 0.237274, "I2": 44.5, "tau2": 0.4929, "has_trajectory": false}, {"review_id": "CD015551", "analysis_name": "Any-grade adverse events (up to 30 days after final dose)", "k": 3, "theta": 0.0173, "p_value": 0.320553, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015573", "analysis_name": "Complications of treatment", "k": 4, "theta": -1.0279, "p_value": 0.077876, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015584", "analysis_name": "Placement success", "k": 13, "theta": 0.0115, "p_value": 0.322868, "I2": 42.0, "tau2": 0.0006, "has_trajectory": false}, {"review_id": "CD015588", "analysis_name": "All-cause death", "k": 16, "theta": -0.1581, "p_value": 0.00097, "I2": 21.2, "tau2": 0.0065, "has_trajectory": false}, {"review_id": "CD015636", "analysis_name": "Subgroup investigations \u2013 dengue virus (DENV) serotype", "k": 5, "theta": -1.4275, "p_value": 0.0, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015673", "analysis_name": "Dropouts", "k": 14, "theta": -0.1174, "p_value": 0.062408, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015698", "analysis_name": "Anastomotic leakage (Subgroup analysis: IPC Types)", "k": 3, "theta": 0.52, "p_value": 0.455026, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015721", "analysis_name": "Functional independence: mRS score < 3 within 90 days", "k": 6, "theta": 0.0161, "p_value": 0.630267, "I2": 27.6, "tau2": 0.0019, "has_trajectory": false}, {"review_id": "CD015746", "analysis_name": "Acute typhoid fever", "k": 6, "theta": -1.6091, "p_value": 0.0, "I2": 66.6, "tau2": 0.191, "has_trajectory": false}, {"review_id": "CD015749", "analysis_name": "Occurrence of adverse events", "k": 3, "theta": -0.1445, "p_value": 0.677025, "I2": 43.3, "tau2": 0.1562, "has_trajectory": false}, {"review_id": "CD015751", "analysis_name": "Participant discontinuation", "k": 3, "theta": 0.4425, "p_value": 0.466545, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015779", "analysis_name": "Recurrence of rheumatic fever", "k": 6, "theta": -0.9324, "p_value": 0.00117, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015786", "analysis_name": "Early adverse effects", "k": 10, "theta": -1.3609, "p_value": 0.003304, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015788", "analysis_name": "Proportion of participants who were adherent", "k": 8, "theta": 0.1667, "p_value": 0.032584, "I2": 70.4, "tau2": 0.0294, "has_trajectory": false}, {"review_id": "CD015804", "analysis_name": "Proportion of participants who experienced TEAEs during the study period", "k": 8, "theta": -0.0293, "p_value": 0.336075, "I2": 3.2, "tau2": 0.0003, "has_trajectory": false}, {"review_id": "CD015820", "analysis_name": "Adverse events", "k": 4, "theta": 0.3284, "p_value": 0.347442, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015824", "analysis_name": "Clinical worsening", "k": 5, "theta": -0.6349, "p_value": 1e-06, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015830", "analysis_name": "Duration of delirium", "k": 4, "theta": -1.0739, "p_value": 0.001992, "I2": 28.0, "tau2": 0.1384, "has_trajectory": false}, {"review_id": "CD015849", "analysis_name": "All-cause death", "k": 7, "theta": -0.164, "p_value": 0.020592, "I2": 22.9, "tau2": 0.0071, "has_trajectory": false}, {"review_id": "CD015854", "analysis_name": "Serious adverse event", "k": 5, "theta": -0.8275, "p_value": 0.163398, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD015894", "analysis_name": "Pain assessed with a validated scale for procedural pain in newborns during the procedure", "k": 7, "theta": -0.5632, "p_value": 0.000341, "I2": 62.0, "tau2": 0.1048, "has_trajectory": false}, {"review_id": "CD015932", "analysis_name": "Rate of pulmonary complications \u2013 pneumonia (with RCT)", "k": 10, "theta": -0.2841, "p_value": 0.00057, "I2": 94.3, "tau2": 0.0471, "has_trajectory": false}, {"review_id": "CD015968", "analysis_name": "Waist circumference (cm) - End of study", "k": 3, "theta": -1.1554, "p_value": 0.411801, "I2": 12.9, "tau2": 0.824, "has_trajectory": false}, {"review_id": "CD016031", "analysis_name": "Comparison 3: Lateral vs posterior, Outcome 15: Adverse events, implant related (categorical data)", "k": 28, "theta": -0.2507, "p_value": 0.250654, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD016064", "analysis_name": "Adverse events", "k": 5, "theta": 0.2913, "p_value": 0.331313, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD016119", "analysis_name": "Requirement for blood transfusion", "k": 16, "theta": 0.2936, "p_value": 0.045071, "I2": 33.0, "tau2": 0.0973, "has_trajectory": false}, {"review_id": "CD016120", "analysis_name": "Side effects", "k": 4, "theta": -0.3542, "p_value": 0.554824, "I2": 85.0, "tau2": 1.0846, "has_trajectory": false}, {"review_id": "CD016131", "analysis_name": "All-cause medically attended acute respiratory illnesses (MAARI)", "k": 5, "theta": -0.3029, "p_value": 0.059133, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD016136", "analysis_name": "Implementation outcome", "k": 30, "theta": 0.9477, "p_value": 0.0, "I2": 78.1, "tau2": 0.296, "has_trajectory": false}, {"review_id": "CD016147", "analysis_name": "Manual removal of the placenta (end of treatment)", "k": 3, "theta": -0.1935, "p_value": 0.374625, "I2": 59.8, "tau2": 0.0847, "has_trajectory": false}, {"review_id": "CD016148", "analysis_name": "2nd degree tears", "k": 4, "theta": 0.0382, "p_value": 0.61895, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD016211", "analysis_name": "Maternal sepsis: subgroup analysis (polypharmacy vs monopharmacy)", "k": 5, "theta": -0.4165, "p_value": 0.0, "I2": 0.0, "tau2": 0.0, "has_trajectory": false}, {"review_id": "CD016278", "analysis_name": "Blood transfusion", "k": 4, "theta": -0.1308, "p_value": 0.206501, "I2": 5.8, "tau2": 0.0048, "has_trajectory": false}], "corpus_summary": {"n_with_trajectory": 10, "n_aggregate_only": 393, "n_total": 403}};
+</script>
+</body>
+</html>
