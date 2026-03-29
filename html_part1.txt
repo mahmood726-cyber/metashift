@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MetaShift &mdash; When Did the Evidence Change?</title>
+<style>
+/* ── CSS custom properties ── */
+:root {
+  --bg: #f8f9fa;
+  --surface: #ffffff;
+  --surface2: #f1f3f5;
+  --border: #dee2e6;
+  --text: #212529;
+  --text-muted: #6c757d;
+  --accent: #2563eb;
+  --accent-light: #dbeafe;
+  --early: #198754;
+  --mid: #2563eb;
+  --late: #b8860b;
+  --never: #dc3545;
+  --shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+body.dark {
+  --bg: #0f1117;
+  --surface: #1e2130;
+  --surface2: #252840;
+  --border: #3a3f5c;
+  --text: #e8eaf0;
+  --text-muted: #8b93b0;
+  --accent: #60a5fa;
+  --accent-light: #1e3a5f;
+  --shadow: 0 1px 4px rgba(0,0,0,.4);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+a { color: var(--accent); }
+button { cursor: pointer; }
+.app-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: var(--shadow);
+}
+.app-header h1 { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+.app-header .subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.header-controls { display: flex; align-items: center; gap: 10px; }
+.main-content { max-width: 1200px; margin: 0 auto; padding: 20px 24px; }
+.section { margin-bottom: 32px; }
+.section-title { font-size: 16px; font-weight: 600; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid var(--border); }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  transition: background .15s, border-color .15s;
+}
+.btn:hover { background: var(--surface2); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { opacity: .9; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-group { display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.btn-group .btn { border: none; border-radius: 0; border-right: 1px solid var(--border); }
+.btn-group .btn:last-child { border-right: none; }
+.btn-group .btn.active { background: var(--accent); color: #fff; }
+.toggle-switch { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-muted); }
+.toggle-switch input { display: none; }
+.toggle-switch label {
+  width: 36px; height: 20px; background: var(--border); border-radius: 10px;
+  position: relative; cursor: pointer; transition: background .2s;
+}
+.toggle-switch label::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: 50%; background: #fff;
+  transition: left .2s;
+}
+.toggle-switch input:checked + label { background: var(--accent); }
+.toggle-switch input:checked + label::after { left: 18px; }
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px 18px; box-shadow: var(--shadow);
+}
+.card .stat-val { font-size: 28px; font-weight: 700; color: var(--accent); }
+.card .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.card .stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 10px;
+  font-size: 11px; font-weight: 600; white-space: nowrap;
+}
+.cls-early  { background: #d1fae5; color: #065f46; }
+.cls-mid    { background: #dbeafe; color: #1e40af; }
+.cls-late   { background: #fef9c3; color: #7c5a00; }
+.cls-never  { background: #fee2e2; color: #991b1b; }
+body.dark .cls-early  { background: #064e30; color: #6ee7b7; }
+body.dark .cls-mid    { background: #1e3a5f; color: #93c5fd; }
+body.dark .cls-late   { background: #44380a; color: #fde68a; }
+body.dark .cls-never  { background: #500b0b; color: #fca5a5; }
+.chart-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; box-shadow: var(--shadow); overflow-x: auto; }
+.trajectory-container { display: flex; flex-direction: column; gap: 0; }
+.trajectory-container svg { display: block; }
+.chart-title { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+.chart-row { display: flex; gap: 20px; flex-wrap: wrap; }
+.chart-row .chart-wrapper { flex: 1; min-width: 280px; }
+.sortable-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sortable-table th {
+  background: var(--surface2); padding: 8px 10px; text-align: left;
+  font-weight: 600; border-bottom: 2px solid var(--border); cursor: pointer;
+  user-select: none; white-space: nowrap;
+}
+.sortable-table th:hover { background: var(--accent-light); }
+.sortable-table th .sort-icon { margin-left: 4px; opacity: .4; }
+.sortable-table th.sort-asc .sort-icon::after { content: '\25B2'; }
+.sortable-table th.sort-desc .sort-icon::after { content: '\25BC'; }
+.sortable-table th:not(.sort-asc):not(.sort-desc) .sort-icon::after { content: '\21C5'; }
+.sortable-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.sortable-table tr:last-child td { border-bottom: none; }
+.sortable-table tr.clickable:hover > td { background: var(--accent-light); cursor: pointer; }
+.sortable-table tr.expanded > td { background: var(--accent-light); }
+.detail-panel { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 2px; }
+.detail-row td { padding: 0 !important; border: none !important; }
+.table-container { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); }
+.table-scroll { overflow-x: auto; }
+.section-toggle { padding: 10px 16px; background: var(--surface2); cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 13px; border-top: 1px solid var(--border); }
+.section-toggle:hover { background: var(--accent-light); }
+.custom-form-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; box-shadow: var(--shadow); }
+.custom-input-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+.custom-input-table th { background: var(--surface2); padding: 6px 8px; text-align: left; font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--border); }
+.custom-input-table td { padding: 4px 6px; border-bottom: 1px solid var(--border); }
+.custom-input-table input { width: 100%; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); font-size: 13px; }
+.custom-input-table input:focus { outline: 2px solid var(--accent); border-color: transparent; }
+.custom-controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.custom-result { margin-top: 20px; }
+.custom-result .result-stats { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.custom-result .stat-pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 12px; }
+.custom-result .stat-pill strong { color: var(--accent); }
+.app-footer { background: var(--surface); border-top: 1px solid var(--border); padding: 14px 24px; margin-top: 40px; }
+.footer-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.footer-caveat { font-size: 11px; color: var(--text-muted); max-width: 600px; }
+.footer-actions { display: flex; gap: 8px; }
+@media (max-width: 768px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .main-content { padding: 12px; }
+  .app-header { padding: 10px 12px; }
+  .chart-row { flex-direction: column; }
+}
+@media print {
+  .app-header, .app-footer, .btn, .btn-group, .custom-form-wrap { display: none !important; }
+  .main-content { padding: 0; max-width: 100%; }
+  .card, .chart-wrapper, .table-container { break-inside: avoid; box-shadow: none; }
+}
+.cp-none { color: var(--text-muted); font-style: italic; }
+.nowrap { white-space: nowrap; }
+.text-right { text-align: right; }
+.hidden { display: none; }
+.cp-badge { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 11px; background: #fef9c3; color: #7c5a00; font-weight: 600; }
+body.dark .cp-badge { background: #44380a; color: #fde68a; }
+.sig-yes { background: #d1fae5; color: #065f46; display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+.sig-no  { background: var(--surface2); color: var(--text-muted); display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 11px; }
+body.dark .sig-yes { background: #064e30; color: #6ee7b7; }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div>
+    <h1>MetaShift &mdash; When Did the Evidence Change?</h1>
+    <div class="subtitle">Changepoint detection in cumulative meta-analysis &middot; 403 Cochrane reviews</div>
+  </div>
+  <div class="header-controls">
+    <div class="btn-group" id="modeToggle">
+      <button class="btn active" onclick="setMode('corpus')">Corpus</button>
+      <button class="btn" onclick="setMode('custom')">Custom</button>
+    </div>
+    <div class="toggle-switch">
+      <span>Dark</span>
+      <input type="checkbox" id="darkToggle">
+      <label for="darkToggle"></label>
+    </div>
+  </div>
+</header>
+
+<main class="main-content">
+
+  <div id="corpusMode">
+
+    <div class="section">
+      <div class="section-title">Corpus Summary</div>
+      <div class="stat-grid" id="summaryCards">
+        <div class="card"><div class="stat-val" id="s-traj">10</div><div class="stat-label">Reviews with trajectories</div><div class="stat-sub">Full cumulative MA computed</div></div>
+        <div class="card"><div class="stat-val" id="s-effect">80%</div><div class="stat-label">With effect changepoint</div><div class="stat-sub">CUSUM detected</div></div>
+        <div class="card"><div class="stat-val" id="s-sig">20%</div><div class="stat-label">With significance flip</div><div class="stat-sub">Binary segmentation</div></div>
+        <div class="card"><div class="stat-val" id="s-het">70%</div><div class="stat-label">With heterogeneity spike</div><div class="stat-sub">PELT algorithm</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Stability Distribution &amp; Study Count Histogram</div>
+      <div class="chart-row">
+        <div class="chart-wrapper" style="flex:0 0 340px">
+          <div class="chart-title">STABILITY CLASS (trajectory reviews)</div>
+          <div id="stabilityChart"></div>
+        </div>
+        <div class="chart-wrapper" style="flex:1">
+          <div class="chart-title">STUDIES PER REVIEW (all 403 reviews)</div>
+          <div id="kHistogram"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Review Explorer</div>
+      <div class="table-container">
+        <div class="table-scroll">
+          <table class="sortable-table" id="reviewTable">
+            <thead>
+              <tr>
+                <th onclick="sortTable(0)" data-col="0">Review ID<span class="sort-icon"></span></th>
+                <th onclick="sortTable(1)" data-col="1">Analysis<span class="sort-icon"></span></th>
+                <th onclick="sortTable(2)" data-col="2" class="text-right">k<span class="sort-icon"></span></th>
+                <th onclick="sortTable(3)" data-col="3">Effect CP<span class="sort-icon"></span></th>
+                <th onclick="sortTable(4)" data-col="4">Sig Flip<span class="sort-icon"></span></th>
+                <th onclick="sortTable(5)" data-col="5">Het Spike<span class="sort-icon"></span></th>
+                <th onclick="sortTable(6)" data-col="6">Stability<span class="sort-icon"></span></th>
+              </tr>
+            </thead>
+            <tbody id="reviewTableBody"></tbody>
+          </table>
+        </div>
+        <div class="section-toggle" onclick="toggleAggSection()" id="aggToggle">
+          <span>393 aggregate-only reviews (no per-study data &mdash; trajectory not available)</span>
+          <span id="aggToggleIcon">&#9660;</span>
+        </div>
+        <div id="aggSection" class="hidden">
+          <div class="table-scroll">
+            <table class="sortable-table" id="aggTable">
+              <thead>
+                <tr>
+                  <th onclick="sortAgg(0)">Review ID<span class="sort-icon"></span></th>
+                  <th onclick="sortAgg(1)">Analysis<span class="sort-icon"></span></th>
+                  <th onclick="sortAgg(2)" class="text-right">k<span class="sort-icon"></span></th>
+                  <th onclick="sortAgg(3)" class="text-right">&theta;<span class="sort-icon"></span></th>
+                  <th onclick="sortAgg(4)" class="text-right">p-value<span class="sort-icon"></span></th>
+                  <th onclick="sortAgg(5)" class="text-right">I&sup2;<span class="sort-icon"></span></th>
+                </tr>
+              </thead>
+              <tbody id="aggTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="customMode" class="hidden">
+    <div class="section">
+      <div class="section-title">Custom Analysis</div>
+      <div class="custom-form-wrap">
+        <div class="custom-controls">
+          <button class="btn btn-sm" onclick="addStudyRow()">+ Add Row</button>
+          <button class="btn btn-sm" onclick="clearStudyRows()">Clear</button>
+          <button class="btn btn-sm" onclick="loadExample()">Load Example</button>
+          <button class="btn btn-sm btn-primary" onclick="runCustomAnalysis()">&#9658; Run Analysis</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="custom-input-table" id="studyInputTable">
+            <thead>
+              <tr>
+                <th style="width:200px">Study Name</th>
+                <th style="width:80px">Year</th>
+                <th style="width:110px">Effect (log scale)</th>
+                <th style="width:100px">SE</th>
+                <th style="width:40px"></th>
+              </tr>
+            </thead>
+            <tbody id="studyInputBody"></tbody>
+          </table>
+        </div>
+        <div id="customResult" class="custom-result hidden"></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="app-footer">
+  <div class="footer-inner">
+    <div class="footer-caveat">
+      <strong>MetaShift v1.0</strong> &mdash; Changepoint detection in cumulative meta-analysis.
+      Corpus: 10 Cochrane reviews with full trajectories, 393 aggregate-only.
+      Algorithms: CUSUM (effect), Binary Segmentation (significance), PELT (heterogeneity).
+      <em>Exploratory research tool. Not for clinical decision-making.</em>
+    </div>
+    <div class="footer-actions">
+      <button class="btn btn-sm" onclick="exportCSV()">&#8681; CSV</button>
+      <button class="btn btn-sm" onclick="exportSVG()">&#8681; SVG</button>
+      <button class="btn btn-sm" onclick="exportPNG()">&#8681; PNG</button>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* =====================================================================
+   MetaShift Dashboard v1.0
+   ===================================================================== */
+
+var DATA =
