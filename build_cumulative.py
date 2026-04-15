@@ -14,6 +14,9 @@ from pathlib import Path
 
 sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
+PROJECT_ROOT = Path(__file__).resolve().parent
+DEFAULT_PROJECTS_ROOT = PROJECT_ROOT.parent
+
 
 def normal_cdf(x):
     """Standard normal CDF (Abramowitz & Stegun 26.2.17)."""
@@ -234,11 +237,23 @@ def safe_float(val):
         return None
 
 
-def main():
+def resolve_paths(project_root=None, projects_root=None):
+    project_root = Path(project_root).resolve() if project_root else PROJECT_ROOT
+    projects_root = Path(projects_root).resolve() if projects_root else project_root.parent
+    return {
+        'validation_inputs': projects_root / 'FragilityAtlas' / 'data' / 'output' / 'r_validation_inputs.json',
+        'fragility_results': projects_root / 'FragilityAtlas' / 'data' / 'output' / 'fragility_atlas_results.csv',
+        'prediction_results': projects_root / 'PredictionGap' / 'data' / 'output' / 'prediction_gap_results.csv',
+        'output': project_root / 'data' / 'cumulative.json',
+    }
+
+
+def main(project_root=None, projects_root=None):
     print("Building MetaShift cumulative trajectories...\n")
+    paths = resolve_paths(project_root=project_root, projects_root=projects_root)
 
     # Load per-study data (10 analyses)
-    json_path = Path(r'C:\FragilityAtlas\data\output\r_validation_inputs.json')
+    json_path = paths['validation_inputs']
     if not json_path.exists():
         print(f"ERROR: {json_path} not found")
         return
@@ -300,8 +315,8 @@ def main():
         })
 
     # Load aggregate data for remaining 393 reviews
-    fa_path = Path(r'C:\FragilityAtlas\data\output\fragility_atlas_results.csv')
-    pg_path = Path(r'C:\PredictionGap\data\output\prediction_gap_results.csv')
+    fa_path = paths['fragility_results']
+    pg_path = paths['prediction_results']
 
     fa_map = {}
     if fa_path.exists():
@@ -355,7 +370,7 @@ def main():
         }
     }
 
-    out_path = Path(r'C:\MetaShift\data\cumulative.json')
+    out_path = paths['output']
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, 'w', encoding='utf-8') as f:
         json.dump(output, f)
@@ -378,6 +393,7 @@ def main():
     size_kb = out_path.stat().st_size / 1024
     print(f"\n  Output: {out_path}")
     print(f"  Size:   {size_kb:.0f} KB")
+    return out_path
 
 
 if __name__ == '__main__':
