@@ -526,7 +526,7 @@ function fmtPct(v) {
 
 function stabClass(sc) {
   if (!sc) return 'cls-never';
-  var s = sc.toLowerCase();
+  var s = String(sc ?? "").toLowerCase();
   if (s.indexOf('early') >= 0) return 'cls-early';
   if (s.indexOf('mid') >= 0) return 'cls-mid';
   if (s.indexOf('late') >= 0) return 'cls-late';
