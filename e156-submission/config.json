@@ -3,7 +3,7 @@
   "slug": "metashift",
   "author": "Mahmood Ahmad",
   "date": "2026-03-26",
-  "path": "C:\\MetaShift",
+  "path": "..",
   "type": "methods",
   "primary_estimand": "Changepoint detection rate",
   "summary": "CUSUM and PELT changepoint algorithms detect hidden trajectory shifts in cumulative meta-analyses.",
