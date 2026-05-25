@@ -1,8 +1,8 @@
 
-json_data = open('C:/MetaShift/data/compact.json','r',encoding='utf-8').read()
+json_data = open('C:/MetaShift/data/compact.json',encoding='utf-8').read()
 
-part1 = open('C:/MetaShift/html_part1.txt','r',encoding='utf-8').read()
-part2 = open('C:/MetaShift/html_part2.txt','r',encoding='utf-8').read()
+part1 = open('C:/MetaShift/html_part1.txt',encoding='utf-8').read()
+part2 = open('C:/MetaShift/html_part2.txt',encoding='utf-8').read()
 
 html = part1 + json_data + part2
 
@@ -10,6 +10,7 @@ with open('C:/MetaShift/metashift.html','w',encoding='utf-8') as f:
     f.write(html)
 
 import re
+
 div_opens = len(re.findall(r'<div[\s>]', html))
 div_closes = html.count('</div>')
 script_start = html.find('<script>')

@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 
-
 REQUIRED_SUBMISSION_FILES = ('config.json', 'paper.md', 'protocol.md', 'index.html')
 
 

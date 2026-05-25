@@ -6,9 +6,9 @@ For 393 reviews: aggregate data only (no trajectory).
 Output: data/cumulative.json
 """
 
+import csv
 import json
 import math
-import csv
 import sys
 from pathlib import Path
 
@@ -125,7 +125,7 @@ def cusum_changepoint(values, target=None):
     last_exceed = None
     for i in range(n):
         S = max(0.0, S + deviations[i] - k_slack)
-        if S > h:
+        if h < S:
             last_exceed = i + 1  # 1-based step number
 
     return last_exceed
@@ -256,7 +256,7 @@ def main(project_root=None, projects_root=None):
     json_path = paths['validation_inputs']
     if not json_path.exists():
         print(f"ERROR: {json_path} not found")
-        return
+        return None
 
     with open(json_path, encoding='utf-8') as f:
         study_data = json.load(f)
