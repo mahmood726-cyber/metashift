@@ -1135,10 +1135,10 @@ function renderInputTable() {
     customRows.forEach(function(row, i) {
       h += '<tr>';
       h += '<td style="color:var(--text2);font-size:0.85rem;">' + (i+1) + '<\/td>';
-      h += '<td><input type="text" value="' + escapeHtml(String(row.name || '')) + '" oninput="customRows[' + i + '].name=this.value" placeholder="Study name"><\/td>';
-      h += '<td><input type="number" value="' + (row.year || '') + '" oninput="customRows[' + i + '].year=+this.value" placeholder="Year" style="width:70px;"><\/td>';
-      h += '<td><input type="number" value="' + (row.yi !== '' ? row.yi : '') + '" oninput="customRows[' + i + '].yi=parseFloat(this.value)" step="any" placeholder="0.00" style="width:80px;"><\/td>';
-      h += '<td><input type="number" value="' + (row.sei !== '' ? row.sei : '') + '" oninput="customRows[' + i + '].sei=parseFloat(this.value)" step="any" placeholder="0.00" style="width:80px;"><\/td>';
+      h += '<td><input type="text" value="' + escapeHtml(String(row.name || '')) + '" oninput="customRows[' + i + '].name=this.value" placeholder="Study name" aria-label="Study name"><\/td>';
+      h += '<td><input type="number" value="' + (row.year || '') + '" oninput="customRows[' + i + '].year=+this.value" placeholder="Year" style="width:70px;" aria-label="Year"><\/td>';
+      h += '<td><input type="number" value="' + (row.yi !== '' ? row.yi : '') + '" oninput="customRows[' + i + '].yi=parseFloat(this.value)" step="any" placeholder="0.00" style="width:80px;" aria-label="0.00"><\/td>';
+      h += '<td><input type="number" value="' + (row.sei !== '' ? row.sei : '') + '" oninput="customRows[' + i + '].sei=parseFloat(this.value)" step="any" placeholder="0.00" style="width:80px;" aria-label="0.00"><\/td>';
       h += '<td><button class="btn btn-danger" style="padding:3px 8px;font-size:0.78rem;" onclick="removeRow(' + i + ')">&#10005;<\/button><\/td>';
       h += '<\/tr>';
     });
