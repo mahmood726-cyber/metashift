@@ -99,7 +99,7 @@ function peltChangepoint(values) {
   var total_var = values.reduce(function(a, v) { return a + Math.pow(v - mean, 2); }, 0) / n;
   if (total_var < 1e-10) return null;
   var total_cost = n * Math.log(Math.max(total_var, 1e-10));
-  var penalty = 3 * Math.log(n);
+  var penalty = 5 * Math.log(n);   // raised 3->5 to match metashift.html production fix
   var best_imp = 0, best_c = null;
   for (var c = 2; c < n - 1; c++) {
     var s1 = values.slice(0, c), s2 = values.slice(c);
