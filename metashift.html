@@ -666,7 +666,11 @@ function peltChangepoint(values) {
   var total_var = values.reduce(function(a, v) { return a + Math.pow(v - mean, 2); }, 0) / n;
   if (total_var < 1e-10) return null;
   var total_cost = n * Math.log(Math.max(total_var, 1e-10));
-  var penalty = 3 * Math.log(n);
+  // Penalty multiplier raised 3->5: on short MA series (n~12-20) the textbook
+  // 3*log(n) BIC penalty is too lenient and over-splits. Harness-measured FPR
+  // on the per-study effect series drops from ~0.40 (mult=3) to ~0.08-0.14
+  // (mult=5) while power stays ~1.0 for clear shifts. See truth-recovery/REPORT.md.
+  var penalty = 5 * Math.log(n);
   var best_imp = 0, best_c = null;
   for (var c = 2; c < n - 1; c++) {
     var s1 = values.slice(0, c), s2 = values.slice(c);
@@ -1162,11 +1166,18 @@ function runAnalysis() {
   var traj = cumulativeMeta(yi, sei);
   var k = traj.length;
 
-  var est_seq = traj.map(function(t) { return t.est; });
   var sig_seq = traj.map(function(t) { return t.sig ? 1 : 0; });
   var i2_seq = traj.map(function(t) { return t.I2; });
 
-  var eff_cp = cusumChangepoint(est_seq);
+  // Effect changepoint: run PELT on the PER-STUDY effect series (raw yi in study
+  // order), NOT the cumulative running-mean trajectory. The cumulative trajectory
+  // is non-stationary (early points high-variance/few studies, later points
+  // low-variance) and autocorrelated, which violates PELT's independence/
+  // constant-variance assumptions, so PELT flagged a "regime shift" in ~97-99% of
+  // STABLE meta-analyses (harness-measured FPR 0.97-0.998). Detecting on the raw
+  // per-study sequence keeps power ~1.0, cuts FPR to ~0.08-0.14 (penalty mult=5),
+  // and roughly doubles localization. See truth-recovery/REPORT.md.
+  var eff_cp = peltChangepoint(yi);
   var sig_cp = binarySegmentationCP(sig_seq);
   var het_cp = peltChangepoint(i2_seq);
   var stab = classifyStability(eff_cp, k);
