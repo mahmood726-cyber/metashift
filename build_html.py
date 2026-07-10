@@ -45,7 +45,10 @@ def render_html(template_text, payload):
         raise ValueError("Template is missing the <script id=\"dataScript\"> DATA block.")
 
     embedded = "DATA = " + json.dumps(payload, ensure_ascii=False) + ";"
-    return DATA_BLOCK.sub(r"\1" + embedded + r"\n\2", template_text, count=1)
+    # Use a replacement FUNCTION so backslash sequences produced by json.dumps
+    # (e.g. \n, \uXXXX for control chars) are inserted literally rather than
+    # being interpreted by re.sub as escapes/group references.
+    return DATA_BLOCK.sub(lambda m: m.group(1) + embedded + "\n" + m.group(2), template_text, count=1)
 
 
 def analyze_html(html):

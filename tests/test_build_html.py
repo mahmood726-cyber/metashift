@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 from build_html import main, render_html
@@ -48,3 +49,35 @@ def test_render_html_fails_closed_when_data_script_block_missing():
         assert "dataScript" in str(exc)
     else:
         raise AssertionError("render_html should fail closed when the dataScript block is missing")
+
+
+TEMPLATE_MIN = '<script id="dataScript">DATA = {};</script>'
+
+
+def _extract_data(html):
+    """Pull the JSON payload back out of the rendered DATA block and parse it."""
+    match = re.search(r"DATA = (.*?);\s*</script>", html, re.DOTALL)
+    assert match is not None, "rendered output missing DATA block"
+    return json.loads(match.group(1))
+
+
+def test_render_html_control_char_does_not_crash():
+    # json.dumps emits  for the control char; a string replacement would
+    # make re.sub raise PatternError: bad escape \u. A function replacement must not.
+    out = render_html(TEMPLATE_MIN, {"name": "a\x01b"})
+    assert _extract_data(out) == {"name": "a\x01b"}
+
+
+def test_render_html_newline_value_stays_escaped():
+    # A newline in a value must remain a JS/JSON \n escape, not become a real
+    # newline that terminates the string literal in the shipped HTML.
+    out = render_html(TEMPLATE_MIN, {"name": "line1\nline2"})
+    assert "line1\\nline2" in out  # literal backslash-n in the emitted JS
+    assert _extract_data(out) == {"name": "line1\nline2"}
+
+
+def test_render_html_backslash_digit_is_literal():
+    # An analysis_name like 'group \1' must not be interpreted by re.sub as a
+    # captured-group backreference.
+    out = render_html(TEMPLATE_MIN, {"name": "group \\1"})
+    assert _extract_data(out) == {"name": "group \\1"}
